@@ -9,15 +9,18 @@ const base32 = require("base32.js");
 const bs32Option = { type: "crockford", lc: true };
 const https = require('https');
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
-const serverListenChannale = 'dht.level.api.server.listen';
+
+const DefaultDaemonListenChannel = 'dht.mesh.api.daemon.listen';
 const iConstMaxResultsOnce = 20;
 
 
 class DHTClient {
-  constructor(serverChannel) {
+  constructor(daemonChannel) {
     console.log('DHTClient::constructor');
-    if(serverChannel) {
-      this.serverChannel_ = serverChannel;
+    if(daemonChannel) {
+      this.daemonChannel_ = daemonChannel;
+    } else {
+      this.daemonChannel_ = DefaultDaemonListenChannel;
     }
     this.apiChannel_ = this.calcCallBackHash_(this);
     this.subscriber_ = redis.createClient(redisOption);
@@ -95,11 +98,7 @@ class DHTClient {
     msg.channel = this.apiChannel_;
     const msgBuff = Buffer.from(JSON.stringify(msg),'utf-8');
     try {
-      if(this.serverChannel_) {
-        this.publisher_.publish(this.serverChannel_,msgBuff);
-      } else {
-        this.publisher_.publish(serverListenChannale,msgBuff);        
-      }
+      this.publisher_.publish(this.daemonChannel_,msgBuff);
     } catch (e) {
       console.log('writeData_::fetch e=<',e,'>');
     }

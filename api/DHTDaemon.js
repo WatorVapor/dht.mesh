@@ -3,15 +3,15 @@ const redis = require('redis');
 const redisOption = {
   path:'/dev/shm/dht.ermu.api.redis.sock'
 };
-const serverListenChannel = 'dht.level.api.server.listen';
+const DefaultDaemonListenChannel = 'dht.mesh.api.daemon.listen';
 class DHTDaemon {
-  constructor(dht,serverChannel) {
+  constructor(dht,apiChannel) {
     this.dht_ = dht;
     this.subscriber_ = redis.createClient(redisOption);
-    if(serverChannel) {
-      this.subscriber_.subscribe(serverChannel);
+    if(apiChannel) {
+      this.subscriber_.subscribe(apiChannel);
     } else {
-      this.subscriber_.subscribe(serverListenChannel);
+      this.subscriber_.subscribe(DefaultDaemonListenChannel);
     }
     const self = this;
     this.subscriber_.on('message',async (channel,message) => {
