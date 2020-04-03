@@ -1,7 +1,7 @@
 'use strict';
 const path = require('path');
 //console.log(':: __filename=<',__filename,'>');
-const dhtPath = '/storage/dhtfs/cluster/dht_mesh_' + path.parse(__filename).name + '/peerstore';
+const dhtPath = '/storage/dhtfs/cluster/dht_mesh_' + path.parse(__filename).name;
 const config = {
   listen:{
     port:19990
