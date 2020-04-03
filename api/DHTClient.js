@@ -38,31 +38,12 @@ class DHTClient {
     const cbTag = this.writeData_(msg);
     this.cb_[cbTag] = cb;
   }
-  put(data,cb) {
-    //console.log('DHTClient::put data=<',data,'>');
-    const msg = {
-      store:'put',
-      data:data
+  push(msg,cb) {
+    //console.log('DHTClient::push msg=<',msg,'>');
+    const msgMesh = {
+      mesh:msg
     };
-    const cbTag = this.writeData_(msg);
-    this.cb_[cbTag] = cb;
-  }
-  putBatch(data,cb) {
-    //console.log('DHTClient::putBatch data=<',data,'>');
-    const msg = {
-      store:'putBatch',
-      data:data
-    };
-    const cbTag = this.writeData_(msg);
-    this.cb_[cbTag] = cb;
-  }
-  get(address,cb) {
-    //console.log('DHTClient::get data=<',data,'>');
-    const msg = {
-      fetch:'get',
-      address:address
-    };
-    const cbTag = this.writeData_(msg);
+    const cbTag = this.writeData_(msgMesh);
     this.cb_[cbTag] = cb;
   }
 
@@ -78,10 +59,8 @@ class DHTClient {
       if(jMsg) {
         if(jMsg.peerInfo) {
           this.onPeerInfo_(jMsg);
-        } else if(jMsg.fetchResp) {
-          this.onFetchResp_(jMsg);
-        } else if(jMsg.store) {
-          this.onStoreResp_(jMsg);
+        } else if(jMsg.mesh) {
+          this.onMeshMsg_(jMsg);
         } else {
           console.log('DHTClient::onMsg_ jMsg=<',jMsg,'>');
         }
@@ -126,26 +105,16 @@ class DHTClient {
       console.log('DHTClient::onPeerInfo_ this.cb_=<',this.cb_,'>');
     }
   }
-  onStoreResp_(jMsg) {
-    //console.log('DHTClient::onStoreResp_ jMsg=<',jMsg,'>');
+  onMeshMsg_(jMsg) {
+    //console.log('DHTClient::onMeshMsg_ jMsg=<',jMsg,'>');
     if( typeof this.cb_[jMsg.cb] === 'function') {
       this.cb_[jMsg.cb](jMsg.result);
     } else {
-      console.log('DHTClient::onStoreResp_ jMsg=<',jMsg,'>');
-      console.log('DHTClient::onStoreResp_ this.cb_=<',this.cb_,'>');
+      console.log('DHTClient::onMeshMsg_ jMsg=<',jMsg,'>');
+      console.log('DHTClient::onMeshMsg_ this.cb_=<',this.cb_,'>');
     }
   }
 
-  async onFetchResp_(jMsg) {
-    //console.log('DHTClient::onFetchResp_ jMsg=<',jMsg,'>');
-    if(jMsg.fetchResp && jMsg.cb) {
-      if(typeof this.cb_[jMsg.cb] === 'function') {
-        const respObj = Object.assign({},jMsg.fetchResp);
-        respObj.address = jMsg.address;
-        this.cb_[jMsg.cb](respObj);
-      }
-    }
-  }
 }
 
 module.exports = DHTClient;

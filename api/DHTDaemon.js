@@ -41,10 +41,8 @@ class DHTDaemon {
       if(jMsg) {
         if(jMsg.peerInfo) {
           await this.onPeerInfo_(jMsg);
-        } else if(jMsg.store) {
-          await this.onStoreData_(jMsg);
-        } else if(jMsg.fetch) {
-          this.onFetchData_(jMsg);
+        } else if(jMsg.mesh) {
+          await this.onMeshData_(jMsg);
         } else {
           console.log('DHTDaemon::onData_::jMsg=<',jMsg,'>');
         }
@@ -70,84 +68,21 @@ class DHTDaemon {
     }
   };
 
-  async onStoreData_(jMsg) {
-    //console.log('onStoreData_::jMsg=<',jMsg,'>');
-    const storeResp = {
+  async onMeshData_(jMsg) {
+    console.log('onMeshData_::jMsg=<',jMsg,'>');
+    const meshResp = {
       cb:jMsg.cb,
-      store:jMsg.store
+      mesh:jMsg.mesh
     };
-    if(jMsg.store === 'put') {
-      const result = await this.onPutData_(jMsg.data,jMsg.cb);
-      storeResp.result = result;
-    } else if(jMsg.store === 'putBatch') {
-      const result = await this.onPutDataBatch_(jMsg.data,jMsg.cb);
-      storeResp.result = result;
-    } else if(jMsg.store === 'delete') {
-      this.onDeleteData_(jMsg.key,jMsg.cb);
-    } else {
-      console.log('onStoreData_::jMsg=<',jMsg,'>');
-    }
-    const RespBuff = Buffer.from(JSON.stringify(storeResp),'utf-8');
+    this.dht_.push(jMsg.mesh,jMsg.cb);
+    const RespBuff = Buffer.from(JSON.stringify(meshResp),'utf-8');
     try {
       this.publisher_.publish(jMsg.channel,RespBuff);
     } catch(e) {
-      console.log('DHTDaemon::onStoreData_::::e=<',e,'>');
+      console.log('DHTDaemon::onMeshData_::::e=<',e,'>');
     }
   };
 
-  async onPutData_ (data,cb) {
-    //console.log('DHTDaemon::onPutData_::data=<',data,'>');
-     const resource = await this.dht_.put(data,cb);
-    //console.log('DHTDaemon::onPutData_::resource=<',resource,'>');
-    return resource;
-  }
-
-  async onPutDataBatch_ (data,cb) {
-    //console.log('DHTDaemon::onPutDataBatch_::data=<',data,'>');
-     const resource = await this.dht_.putBatch(data,cb);
-    //console.log('DHTDaemon::onPutDataBatch_::resource=<',resource,'>');
-    return resource;
-  }
-
-  onDeleteData_(key,cb) {
-    console.log('DHTDaemon::onDeleteData_::jMsg=<',jMsg,'>');
-  }
-
-
-  onFetchData_(jMsg){
-    //console.log('DHTDaemon::onFetchData::jMsg=<',jMsg,'>');
-    if(jMsg.fetch === 'get') {
-      this.onFetchDataByAddress_(jMsg.address,jMsg.cb,jMsg.channel);
-    } else if(jMsg.fetch === '??') {
-    } else {
-      console.log('DHTDaemon::onFetchData::jMsg=<',jMsg,'>');
-    }
-  };
-
-
-
-
-  onFetchDataByAddress_ (address,cb,channel){
-    //console.log('DHTDaemon::onFetchDataByAddress_::address=<',address,'>');
-    //console.log('DHTDaemon::onFetchDataByAddress_::cb=<',cb,'>');
-    //console.log('DHTDaemon::onFetchDataByAddress_::channel=<',channel,'>');
-    const fetchResp = {
-      cb:cb,
-      address:address,
-      fetchResp:{
-      }
-    };
-    const self = this;
-    this.dht_.get(address,cb,(content) => {
-      fetchResp.fetchResp.content = content;
-      const RespBuff = Buffer.from(JSON.stringify(fetchResp),'utf-8');
-      try {
-        self.publisher_.publish(channel,RespBuff);
-      } catch(e) {
-        console.log('DHTDaemon::onFetchDataByAddress_::::e=<',e,'>');
-      }
-    });
-  }
 };
 
 module.exports = DHTDaemon;

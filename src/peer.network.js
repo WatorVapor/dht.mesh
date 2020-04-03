@@ -11,8 +11,6 @@ class PeerNetWork {
   constructor(config) {
     this.config = config;
     this.peers = {};
-    this.storePeers_ = {};
-    this.peekPeers_ = {};
 
     this.crypto_ = new PeerCrypto(config);
     this.machine_ = new PeerMachine(config);
@@ -41,11 +39,11 @@ class PeerNetWork {
   publish(resource) {
     //console.log('PeerNetWork::publish resource=<',resource,'>');
     const relayPeer = this.route_.calcContent(resource.address);
-    //console.log('PeerNetWork::publish relayPeer=<',relayPeer,'>');
-    if(relayPeer.min !== this.crypto_.id) {
+    console.log('PeerNetWork::publish relayPeer=<',relayPeer,'>');
+    if(relayPeer.min && relayPeer.min !== this.crypto_.id) {
       this.relayMsgTo_(relayPeer.min,resource);
     }
-    if(relayPeer.max !== this.crypto_.id) {
+    if(relayPeer.max && relayPeer.max !== this.crypto_.id) {
       this.relayMsgTo_(relayPeer.max,resource);
     }
   }
@@ -67,7 +65,7 @@ class PeerNetWork {
       }
       const rPeerId = this.crypto_.calcID(msgJson);
       if (msgJson.entrance) {
-        this.onNewNodeEntry__(rPeerId, rinfo.address, msgJson.listen, msgJson.storage);
+        this.onNewNodeEntry__(rPeerId, rinfo.address, msgJson.listen);
       } else if (msgJson.welcome) {
         this.onWelcomeNode__(msgJson.welcome);
       } else if (msgJson.ping) {
@@ -75,18 +73,9 @@ class PeerNetWork {
       } else if (msgJson.pong) {
         //console.log('onMessageCtrlServer__ msgJson=<',msgJson,'>');
         this.onPeerPong__(rPeerId, msgJson.pong);
-      } else if (msgJson.put) {
+      } else if (msgJson.mesh) {
           //console.log('onMessageCtrlServer__ msgJson=<',msgJson,'>');
-          this.onPut4Remote__(rPeerId, msgJson.put, msgJson.address, msgJson.cb);
-      } else if (msgJson.putResp) {
-          //console.log('onMessageCtrlServer__ msgJson=<',msgJson,'>');
-          this.onPutResponse__(rPeerId, msgJson.putResp);
-      } else if (msgJson.get) {
-          //console.log('onMessageCtrlServer__ msgJson=<',msgJson,'>');
-          this.onGet4Remote__(rPeerId, msgJson.get, msgJson.address, msgJson.cb);
-      } else if (msgJson.getResp) {
-          //console.log('onMessageCtrlServer__ msgJson=<',msgJson,'>');
-          this.onGetResponse__(rPeerId, msgJson.getResp ,msgJson.address, msgJson.cb);
+          this.onMeshRemote__(rPeerId, msgJson.mesh, msgJson.address, msgJson.cb);
       } else {
         console.log('onMessageCtrlServer__ msgJson=<', msgJson, '>');
       }
@@ -96,7 +85,7 @@ class PeerNetWork {
     }
   };
 
-  onNewNodeEntry__(id, rAddress, listen,storage) {
+  onNewNodeEntry__(id, rAddress, listen) {
     //console.log('onNewNodeEntry__ id=<',id,'>');
     //console.log('onNewNodeEntry__ rAddress=<',rAddress,'>');
     //console.log('onNewNodeEntry__ listen=<',listen,'>');
@@ -104,19 +93,7 @@ class PeerNetWork {
     this.peers[id] = {
       host: rAddress,
       port: listen.port,
-      storage:storage
     };
-    if(storage) {
-      this.storePeers_[id] = {
-        host: rAddress,
-        port: listen.port        
-      }
-    } else {
-      this.peekPeers_[id] = {
-        host: rAddress,
-        port: listen.port        
-      }      
-    }
     //console.log('onNewNodeEntry__ this.peers=<', this.peers, '>');
 
     let msg = {
@@ -139,11 +116,6 @@ class PeerNetWork {
     for(const peerid in this.peers) {
       console.log('onWelcomeNode__ peerid=<',peerid,'>');
       const peerNew = Object.assign({},this.peers[peerid]);
-      if(peerNew.storage) {
-        this.storePeers_[peerid] = peerNew;
-      } else {
-        this.peekPeers_[peerid] = peerNew;
-      }
       this.route_.addPeer(peerid,peerNew.storage);
     }
   }
@@ -198,7 +170,7 @@ class PeerNetWork {
       //console.log('onPeerPong__ this.peers[peerid]=<',this.peers[peerid],'>');
       this.peers[peerid].ttr = ttr;
       if(ttr < iConstMaxTTRInMs) {
-        this.route_.updatePeer(peerid,ttr,this.peers[peerid].storage);
+        this.route_.updatePeer(peerid,ttr);
       } else {
         this.route_.removePeer(peerid);
       }
@@ -262,15 +234,14 @@ class PeerNetWork {
     console.log('onListenCtrlServer address=<', address, '>');
     const self = this;
     setTimeout(()=>{
-      self.doClientEntry__(self.config.entrance,self.config.listen,self.config.storage);
+      self.doClientEntry__(self.config.entrance,self.config.listen);
     },0);
     setTimeout(()=>{
       self.doClientPing__();
     },1000*1);
     this.peers[this.crypto_.id] = {
       host: this.machine_.readMachienIp(),
-      ports: this.config.listen,
-      storage:this.config.storage
+      ports: this.config.listen
     };
   };
   
@@ -289,163 +260,35 @@ class PeerNetWork {
       //console.log('sendMessage_ err=<',err,'>');
     });
   }
-  onStore4Remote__(fromId, store) {
-    //console.log('PeerNetWork::onStore4Remote__ fromId=<', fromId, '>');
-    //console.log('PeerNetWork::onStore4Remote__ store=<', store, '>');
-    const place = new PeerPlace(store.address,this.storePeers_,this.crypto_);
-    //console.log('PeerNetWork::onStore4Remote__ place=<',place,'>');
-    //console.log('PeerNetWork::onStore4Remote__:: this.crypto_.id=<',this.crypto_.id,'>');
-    if(place.isFinal(this.crypto_.id)) {
-      this.storage_.append(store);
-    }
-    if(place.nearest !== this.crypto_.id && place.nearest !== fromId) {
-      this.relayStoreMessage_(place.nearest,store);
-    }
-    if(place.farthest !== this.crypto_.id && place.nearest !== place.farthest && place.farthest !== fromId) {
-      this.relayStoreMessage_(place.farthest,store);
-    }
-  }
-  onFetch4Remote__(fromId, fetch) {
-    //console.log('PeerNetWork::onFetch4Remote__ fromId=<', fromId, '>');
-    //console.log('PeerNetWork::onFetch4Remote__ fetch=<', fetch, '>');
-    const place = new PeerPlace(fetch.address,this.storePeers_,this.crypto_);
-    //console.log('PeerNetWork::onFetch4Remote__ place=<',place,'>');
-    //console.log('PeerNetWork::onFetch4Remote__:: this.crypto_.id=<',this.crypto_.id,'>');
-    if(place.isFinal(this.crypto_.id)) {
-      const self = this;
-      this.storage_.fetch(fetch,(localResource)=> {
-        console.log('PeerNetWork::onFetch4Remote__:: localResource=<',localResource,'>');
-        const fetchRespMsg = {
-          fetchResp:localResource
-        };
-        fetchRespMsg.fetchResp.cb = fetch.cb;
-        fetchRespMsg.fetchResp.address = fetch.address;
-        self.sendMessage_(fromId,fetchRespMsg);        
-      });
-    }
-    if(place.nearest !== this.crypto_.id && place.nearest !== fromId) {
-      this.relayFetchMessage_(place.nearest,fetch);
-    }
-    if(place.farthest !== this.crypto_.id && place.nearest !== place.farthest && place.farthest !== fromId) {
-      this.relayFetchMessage_(place.farthest,fetch);
-    }
-  }
-  onFetchResponse__(fromId, fetchResp) {
-    console.log('PeerNetWork::onFetchResponse__ fromId=<', fromId, '>');
-    console.log('PeerNetWork::onFetchResponse__ fetchResp=<', fetchResp, '>');
-    if(typeof this.replays_[fetchResp.cb] === 'function') {
-      const respMsg = {
-        fetchResp:fetchResp,
-        cb:fetchResp.cb,
-        remote:true,
-        address:fetchResp.address
-      };
-      delete respMsg.fetchResp.cb;
-      delete respMsg.fetchResp.address;
-      this.replays_[respMsg.cb](respMsg);
-    }
-  }
 
   relayMsgTo_(dst,msg) {
     //console.log('PeerNetWork::relayMsgTo_ dst=<', dst, '>');
     //console.log('PeerNetWork::relayMsgTo_ msg=<', msg, '>');
-    this.sendMessage_(dst,msg);
+    if(dst) {
+      this.sendMessage_(dst,msg);
+    }
   }
 
-  relayRespTo_(dst,msg) {
-    //console.log('PeerNetWork::relayRespTo_ dst=<', dst, '>');
-    //console.log('PeerNetWork::relayRespTo_ msg=<', msg, '>');
-    this.sendMessage_(dst,msg);
-  }
   
-  onPut4Remote__(peerFrom,putInfo,address,cb) {
-    //console.log('PeerNetWork::onPut4Remote__ peerFrom=<', peerFrom, '>');
-    //console.log('PeerNetWork::onPut4Remote__ putInfo=<', putInfo, '>');
-    //console.log('PeerNetWork::onPut4Remote__ address=<', address, '>');
-    //console.log('PeerNetWork::onPut4Remote__ cb=<', cb, '>');
+  onMeshRemote__(peerFrom,meshInfo,address,cb) {
+    //console.log('PeerNetWork::onMeshRemote__ peerFrom=<', peerFrom, '>');
+    //console.log('PeerNetWork::onMeshRemote__ meshInfo=<', meshInfo, '>');
+    //console.log('PeerNetWork::onMeshRemote__ address=<', address, '>');
+    //console.log('PeerNetWork::onMeshRemote__ cb=<', cb, '>');
     const relayPeer = this.route_.calcContent(address);
-    //console.log('PeerNetWork::onPut4Remote__ relayPeer=<',relayPeer,'>');
+    //console.log('PeerNetWork::onMeshRemote__ relayPeer=<',relayPeer,'>');
     const resource = {
       address:address,
       cb:cb,
-      put: putInfo
+      mesh: meshInfo
     };
     if(relayPeer.min === this.crypto_.id || relayPeer.max === this.crypto_.id) {
-      this.onPutByRemote(address,putInfo);
+      this.onMeshRemote(address,meshInfo);
     } else if(relayPeer.min !== peerFrom) {
       this.relayMsgTo_(relayPeer.min,resource);
     } else if(relayPeer.max !== peerFrom) {
       this.relayMsgTo_(relayPeer.max,resource);
     }
-  }
-  async onGet4Remote__(peerFrom,getInfo,address,cb) {
-    //console.log('PeerNetWork::onGet4Remote__ peerFrom=<', peerFrom, '>');
-    //console.log('PeerNetWork::onGet4Remote__ getInfo=<', getInfo, '>');
-    //console.log('PeerNetWork::onGet4Remote__ address=<', address, '>');
-    //console.log('PeerNetWork::onGet4Remote__ cb=<', cb, '>');
-    const relayPeer = this.route_.calcContent(address);
-    const resource = {
-      address:address,
-      cb:cb,
-      get: true
-    };
-    if(relayPeer.min === this.crypto_.id || relayPeer.max === this.crypto_.id) {
-      if(typeof this.onGetByRemote === 'function') {
-        this.onGet4Local__(getInfo,address,cb);
-      }
-    } else if(relayPeer.min !== peerFrom) {
-      this.relayMsgTo_(relayPeer.min,resource);
-    } else if(relayPeer.max !== peerFrom) {
-      this.relayMsgTo_(relayPeer.max,resource);
-    }
-  }
-
-  async onGet4Local__(getInfo,address,cb) {
-    const contents = await this.onGetByRemote(address);
-    if(contents) {
-      //console.log('PeerNetWork::onGet4Local__ contents=<', contents, '>');
-      const resp = {
-        address:address,
-        cb:cb,
-        getResp: {
-          contents:contents,
-          invoke:getInfo.invoke
-        }
-      };
-      //console.log('PeerNetWork::onGet4Local__ resp=<', resp, '>');
-      const respPeer = this.route_.calcPeer(getInfo.invoke);
-      //console.log('PeerNetWork::onGet4Local__ respPeer=<', respPeer, '>');
-      if(respPeer.min !== this.crypto_.id) {
-        this.relayRespTo_(respPeer.min,resp);
-      }
-    }
-  }
-  
-  onGetResponse__(peerFrom,getResp,address,cb) {
-    console.log('PeerNetWork::onGetResponse__ peerFrom=<', peerFrom, '>');
-    console.log('PeerNetWork::onGetResponse__ getResp=<', getResp, '>');
-    console.log('PeerNetWork::onGetResponse__ address=<', address, '>');
-    console.log('PeerNetWork::onGetResponse__ cb=<', cb, '>');
-    if(getResp.invoke === this.crypto_.id) {
-      this.onGetResponse(getResp,cb);
-    }
-    /*
-    const resp = {
-      address:address,
-      cb:cb,
-      getResp: {
-        contents:contents,
-        invoke:getInfo.invoke
-      }
-    };
-    //console.log('PeerNetWork::onGet4Local__ resp=<', resp, '>');
-    const respPeer = this.route_.calcPeer(getInfo.invoke);
-    //console.log('PeerNetWork::onGet4Local__ respPeer=<', respPeer, '>');
-    if(respPeer.min !== this.crypto_.id) {
-      this.relayRespTo_(respPeer.min,resp);
-    }
-    */
-    
   }
 }
 
