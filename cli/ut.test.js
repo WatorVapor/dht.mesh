@@ -1,7 +1,7 @@
 'use strict';
 const DHTClient = require('../api/DHTClient.js');
-const serverUTListenChannel = 'dht.level.api.server.listen.ut';
-const dht = new DHTClient(serverUTListenChannel);
+const daemonUTListenChannel = 'dht.mesh.api.daemon.listen.ut';
+const dht = new DHTClient(daemonUTListenChannel);
 //console.log(':: dht=<',dht,'>');
 dht.peerInfo((peerInfo)=>{
   console.log('dht.peerInfo:: peerInfo=<',peerInfo,'>');
