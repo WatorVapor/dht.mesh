@@ -2,13 +2,12 @@
 const fs = require('fs');
 const nacl = require('tweetnacl');
 nacl.util = require('tweetnacl-util');
-const RIPEMD160 = require('ripemd160');
+const CryptoJS = require('crypto-js');
 const base32 = require("base32.js");
-
-
 
 const iConstMessageOutDateInMs = 1000 * 60;
 const bs32Option = { type: "crockford", lc: true };
+
 class PeerCrypto {
   constructor(config) {
     //console.log('PeerCrypto::constructor config=<',config,'>');
@@ -36,7 +35,7 @@ class PeerCrypto {
     signedMsg.sign.pubKey = this.keyMaster.publicKey;
     
     let msgStr = JSON.stringify(signedMsg);
-    let msgHash = new RIPEMD160().update(msgStr).digest('base64');
+    let msgHash = CryptoJS.RIPEMD160(msgStr).toString(CryptoJS.enc.Base64);
     //console.log('PeerCrypto::sign msgHash=<',msgHash,'>');
     //console.log('PeerCrypto::sign this.secretKey=<',this.secretKey,'>');
     const signBuff = nacl.sign(nacl.util.decodeBase64(msgHash),this.secretKey);
@@ -60,7 +59,7 @@ class PeerCrypto {
     delete hashMsg.verify;
     let msgStr = JSON.stringify(hashMsg);
     //console.log('PeerCrypto::verify msgStr=<',msgStr,'>');
-    let msgHash = new RIPEMD160().update(msgStr).digest('base64');
+    let msgHash = CryptoJS.RIPEMD160(msgStr).toString(CryptoJS.enc.Base64);
     //console.log('PeerCrypto::verify msgHash=<',msgHash,'>');
     if(msgHash !== msgJson.verify.hash) {
       console.log('PeerCrypto::verify msgJson=<',msgJson,'>');
@@ -84,17 +83,17 @@ class PeerCrypto {
     return false;
   }
   calcID(msgJson) {
-    const keyRipemd = new RIPEMD160().update(msgJson.sign.pubKey).digest('hex');
+    const keyRipemd = CryptoJS.RIPEMD160(msgJson.sign.pubKey).toString(CryptoJS.enc.Hex);
     const keyBuffer = Buffer.from(keyRipemd,'hex');
     return base32.encode(keyBuffer,bs32Option);
   }
   calcTopic(topic) {
-    const topicRipemd = new RIPEMD160().update(topic).digest('hex');
+    const topicRipemd = CryptoJS.RIPEMD160(topic).toString(CryptoJS.enc.Hex);
     const topicBuffer = Buffer.from(topicRipemd,'hex');
     return base32.encode(topicBuffer,bs32Option);
   }
   calcResourceAddress(resourceKey) {
-    const resourceRipemd = new RIPEMD160().update(resourceKey).digest('hex');
+    const resourceRipemd = CryptoJS.RIPEMD160(resourceKey).toString(CryptoJS.enc.Hex);
     const resourceBuffer = Buffer.from(resourceRipemd,'hex');
     return base32.encode(resourceBuffer,bs32Option);
   }
@@ -122,7 +121,7 @@ class PeerCrypto {
   }
   calcKeyID__() {
     //console.log('PeerCrypto::loadKey__ this.keyMaster=<',this.keyMaster,'>');
-    const keyRipemd = new RIPEMD160().update(this.keyMaster.publicKey).digest('hex');
+    const keyRipemd = CryptoJS.RIPEMD160(this.keyMaster.publicKey).toString(CryptoJS.enc.Hex);
     const keyBuffer = Buffer.from(keyRipemd,'hex');
     //console.log('PeerCrypto::calcKeyID__ keyBuffer =<',keyBuffer ,'>');
     this.id = base32.encode(keyBuffer,bs32Option);

@@ -4,7 +4,6 @@ const dgram = require("dgram");
 const PeerMachine = require('./peer.machine.js');
 const PeerCrypto = require('./peer.crypto.js');
 const PeerRoute = require('./peer.route.js');
-const PeerStorage = require('./peer.storage.js');
 
 const iConstMaxTTRInMs = 1000 * 5;
 
@@ -17,7 +16,6 @@ class PeerNetWork {
 
     this.crypto_ = new PeerCrypto(config);
     this.machine_ = new PeerMachine(config);
-    this.storage_ = new PeerStorage(config);
     this.route_ = new PeerRoute(this.crypto_);
 
     this.serverCtrl = dgram.createSocket("udp6");

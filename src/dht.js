@@ -3,8 +3,6 @@ const os = require('os');
 const dgram = require("dgram");
 const PeerCrypto = require('./peer.crypto.js');
 const PeerNetWork = require('./peer.network.js');
-const PeerStorage = require('./peer.storage.js');
-const PeerResource = require('./peer.resource.js');
 
 
 class DHT {
@@ -12,7 +10,6 @@ class DHT {
     this.config_ = config;
     this.crypto_ = new PeerCrypto(config);
     this.peer_ = new PeerNetWork(config);
-    this.storage_ = new PeerStorage(config);
     if(this.config_.storage) {
       this.resource_ = new PeerResource(config);
     }
