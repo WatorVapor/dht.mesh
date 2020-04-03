@@ -3,7 +3,7 @@
     "base32.js": "^0.1.0",
     "bitwise": "^2.0.4",
     "crypto-js": "^4.0.0",
-    "redis": "^2.8.0",
+    "redis": "^3.0.2",
     "tweetnacl": "^1.0.2",
     "tweetnacl-util": "^0.15.1"
   }
