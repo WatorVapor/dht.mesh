@@ -4,8 +4,8 @@ const redisOption = {
   path:'/dev/shm/dht.ermu.api.redis.sock'
 };
 const crypto = require('crypto');
-const RIPEMD160 = require('ripemd160');
 const base32 = require("base32.js");
+const CryptoJS = require('crypto-js');
 const bs32Option = { type: "crockford", lc: true };
 const https = require('https');
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
@@ -107,12 +107,12 @@ class DHTClient {
   calcCallBackHash_(msg) {
     let now = new Date();
     const cbHash = crypto.randomBytes(256).toString('hex') + JSON.stringify(msg) + now.toGMTString() + now.getMilliseconds() ;
-    const cbRipemd = new RIPEMD160().update(cbHash).digest('hex');
+    const cbRipemd = CryptoJS.RIPEMD160(cbHash).toString(CryptoJS.enc.Hex);
     const cbBuffer = Buffer.from(cbRipemd,'hex');
     return base32.encode(cbBuffer,bs32Option);
   }
   getAddress(resourceKey) {
-    const resourceRipemd = new RIPEMD160().update(resourceKey).digest('hex');
+    const resourceRipemd = CryptoJS.RIPEMD160(resourceKey).toString(CryptoJS.enc.Hex);
     const resourceBuffer = Buffer.from(resourceRipemd,'hex');
     return base32.encode(resourceBuffer,bs32Option);
     return 
