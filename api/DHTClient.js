@@ -38,8 +38,8 @@ class DHTClient {
     const cbTag = this.writeData_(msg);
     this.cb_[cbTag] = cb;
   }
-  push(msg,cb) {
-    //console.log('DHTClient::push msg=<',msg,'>');
+  mesh(msg,cb) {
+    //console.log('DHTClient::mesh msg=<',msg,'>');
     const msgMesh = {
       mesh:msg
     };

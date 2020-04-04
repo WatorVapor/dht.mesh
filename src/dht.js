@@ -24,30 +24,30 @@ class DHT {
   peerInfo() {
     return this.info_;
   }
-  async push(data,cb) {
-    console.log('DHT::push data=<',data,'>');
-    console.log('DHT::push cb=<',cb,'>');
-    const address = this.crypto_.calcResourceAddress(data);
-    console.log('DHT::push address=<',address,'>');
+  async mesh(payload,cb) {
+    console.log('DHT::mesh payload=<',payload,'>');
+    console.log('DHT::mesh cb=<',cb,'>');
+    const address = this.crypto_.calcResourceAddress(payload);
+    console.log('DHT::mesh address=<',address,'>');
     const pushDataMsg = {
       address:address,
       cb:cb,
-      push:{
-        seed:this.info_.id,
-        data:data
+      mesh:{
+        footprint:[this.info_.id],
+        payload:payload
       }
     };
     this.peer_.publish(pushDataMsg);
-    return {address:address,seed:this.info_.id};
+    return {address:address,footprint:this.info_.id};
   }
   
   // inside method.
   onPeerJoint_(peer) {
     console.log('DHT::onPeerJoint_ peer=<',peer,'>');
   }
-  async onMeshRemote_(address,resource) {
+  async onMeshRemote_(address,meshMsg) {
     console.log('DHT::onMeshRemote_ address=<',address,'>');
-    console.log('DHT::onMeshRemote_ resource=<',resource,'>');
+    console.log('DHT::onMeshRemote_ meshMsg=<',meshMsg,'>');
   }
 
 }

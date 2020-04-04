@@ -75,7 +75,7 @@ class PeerNetWork {
         this.onPeerPong__(rPeerId, msgJson.pong);
       } else if (msgJson.mesh) {
           //console.log('onMessageCtrlServer__ msgJson=<',msgJson,'>');
-          this.onMeshRemote__(rPeerId, msgJson.mesh, msgJson.address, msgJson.cb);
+          this.onMeshRemote__(rPeerId, msgJson);
       } else {
         console.log('onMessageCtrlServer__ msgJson=<', msgJson, '>');
       }
@@ -108,15 +108,15 @@ class PeerNetWork {
   onWelcomeNode__(welcome) {
     console.log('onWelcomeNode__ welcome=<',welcome,'>');
     this.peers = Object.assign(this.peers, welcome);
-    console.log('onWelcomeNode__ this.peers=<',this.peers,'>');
+    //console.log('onWelcomeNode__ this.peers=<',this.peers,'>');
     try {
     } catch (e) {
       console.log('onWelcomeNode__ e=<', e, '>');
     }
     for(const peerid in this.peers) {
-      console.log('onWelcomeNode__ peerid=<',peerid,'>');
+      //console.log('onWelcomeNode__ peerid=<',peerid,'>');
       const peerNew = Object.assign({},this.peers[peerid]);
-      this.route_.addPeer(peerid,peerNew.storage);
+      this.route_.addPeer(peerid);
     }
   }
 
@@ -270,24 +270,21 @@ class PeerNetWork {
   }
 
   
-  onMeshRemote__(peerFrom,meshInfo,address,cb) {
+  onMeshRemote__(peerFrom,remoteMsg) {
     //console.log('PeerNetWork::onMeshRemote__ peerFrom=<', peerFrom, '>');
-    //console.log('PeerNetWork::onMeshRemote__ meshInfo=<', meshInfo, '>');
-    //console.log('PeerNetWork::onMeshRemote__ address=<', address, '>');
-    //console.log('PeerNetWork::onMeshRemote__ cb=<', cb, '>');
+    //console.log('PeerNetWork::onMeshRemote__ remoteMsg=<', remoteMsg, '>');
+    const address = remoteMsg.address;
     const relayPeer = this.route_.calcContent(address);
     //console.log('PeerNetWork::onMeshRemote__ relayPeer=<',relayPeer,'>');
-    const resource = {
-      address:address,
-      cb:cb,
-      mesh: meshInfo
-    };
+    if(remoteMsg.footprint && remoteMsg.footprint.length > 0 ) {
+      remoteMsg.footprint.push(this.crypto_.id);
+    }
     if(relayPeer.min === this.crypto_.id || relayPeer.max === this.crypto_.id) {
-      this.onMeshRemote(address,meshInfo);
+      this.onMeshRemote(address,remoteMsg.mesh);
     } else if(relayPeer.min !== peerFrom) {
-      this.relayMsgTo_(relayPeer.min,resource);
+      this.relayMsgTo_(relayPeer.min,remoteMsg);
     } else if(relayPeer.max !== peerFrom) {
-      this.relayMsgTo_(relayPeer.max,resource);
+      this.relayMsgTo_(relayPeer.max,remoteMsg);
     }
   }
 }

@@ -74,7 +74,7 @@ class DHTDaemon {
       cb:jMsg.cb,
       mesh:jMsg.mesh
     };
-    this.dht_.push(jMsg.mesh,jMsg.cb);
+    this.dht_.mesh(jMsg.mesh,jMsg.cb);
     const RespBuff = Buffer.from(JSON.stringify(meshResp),'utf-8');
     try {
       this.publisher_.publish(jMsg.channel,RespBuff);

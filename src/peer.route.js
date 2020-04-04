@@ -11,43 +11,39 @@ class PeerRoute {
     this.buckets_ = {};
     this.respBuckets_ = {};
   }
-  addPeer(peer,storage) {
+  addPeer(peer) {
     //console.log('PeerRoute::addPeer peer=<',peer,'>');
     //console.log('PeerRoute::addPeer this.id_=<',this.id_,'>');
     const distance = this.calcDistance_(peer,this.id_);
     //console.log('PeerRoute::addPeer distance=<',distance,'>');
-    if(storage) {
-      if(!this.buckets_[distance]) {
-        this.buckets_[distance] = {};
-      }
-      this.buckets_[distance][peer] = {};
-      console.log('PeerRoute::addPeer this.buckets_=<',this.buckets_,'>');
-    }    
+    if(!this.buckets_[distance]) {
+      this.buckets_[distance] = {};
+    }
+    this.buckets_[distance][peer] = {};
     if(!this.respBuckets_[distance]) {
       this.respBuckets_[distance] = {};
     }
     this.respBuckets_[distance][peer] = {};
-    console.log('PeerRoute::addPeer this.respBuckets_=<',this.respBuckets_,'>');      
+    //console.log('PeerRoute::addPeer this.buckets_=<',this.buckets_,'>');
+    //.log('PeerRoute::addPeer this.respBuckets_=<',this.respBuckets_,'>');      
   }
 
-  updatePeer(peer,ttr,storage) {
+  updatePeer(peer,ttr) {
     //console.log('PeerRoute::updatePeer peer=<',peer,'>');
     //console.log('PeerRoute::updatePeer ttr=<',ttr,'>');
     //console.log('PeerRoute::updatePeer this.id_=<',this.id_,'>');
     const distance = this.calcDistance_(peer,this.id_);
     //console.log('PeerRoute::updatePeer distance=<',distance,'>');
-    if(storage) {
-      if(!this.buckets_[distance]) {
-        this.buckets_[distance] = {};
-      }
-      this.buckets_[distance][peer] = ttr;
-      //console.log('PeerRoute::updatePeer this.buckets_=<',this.buckets_,'>');
+    if(!this.buckets_[distance]) {
+      this.buckets_[distance] = {};
     }
-    
+    this.buckets_[distance][peer] = ttr;
+    //console.log('PeerRoute::updatePeer this.buckets_=<',this.buckets_,'>');
     if(!this.respBuckets_[distance]) {
       this.respBuckets_[distance] = {};
     }
     this.respBuckets_[distance][peer] = ttr;
+    //console.log('PeerRoute::updatePeer this.buckets_=<',this.buckets_,'>');      
     //console.log('PeerRoute::updatePeer this.respBuckets_=<',this.respBuckets_,'>');      
   }
 

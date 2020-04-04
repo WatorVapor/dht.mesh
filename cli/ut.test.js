@@ -6,9 +6,9 @@ const dht = new DHTClient(daemonUTListenChannel);
 dht.peerInfo((peerInfo)=>{
   console.log('dht.peerInfo:: peerInfo=<',peerInfo,'>');
 });
-const pushMsg = ()=> {
-  dht.push('https://en.wikipedia.org/wiki/Kademlia',(info) => {
+const meshMsg = ()=> {
+  dht.mesh('https://en.wikipedia.org/wiki/Kademlia',(info) => {
     console.log('dht.publish:: info=<',info,'>');
   });
 };
-setTimeout(pushMsg,1000);
+setTimeout(meshMsg,1000);
