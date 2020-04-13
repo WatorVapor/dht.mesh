@@ -41,8 +41,10 @@ class DHTDaemon {
       if(jMsg) {
         if(jMsg.peerInfo) {
           await this.onPeerInfo_(jMsg);
-        } else if(jMsg.mesh) {
-          await this.onMeshData_(jMsg);
+        } else if(jMsg.publish) {
+          await this.onPublishData_(jMsg);
+        } else if(jMsg.delivery) {
+          await this.onDeliveryData_(jMsg);
         } else {
           console.log('DHTDaemon::onData_::jMsg=<',jMsg,'>');
         }
@@ -68,21 +70,35 @@ class DHTDaemon {
     }
   };
 
-  async onMeshData_(jMsg) {
-    console.log('onMeshData_::jMsg=<',jMsg,'>');
+  async onPublishData_(jMsg) {
+    console.log('onPublishData_::jMsg=<',jMsg,'>');
     const meshResp = {
       cb:jMsg.cb,
-      mesh:jMsg.mesh
+      publish:jMsg.publish
     };
-    this.dht_.mesh(jMsg.mesh,jMsg.cb);
+    this.dht_.publish(jMsg.publish,jMsg.cb);
     const RespBuff = Buffer.from(JSON.stringify(meshResp),'utf-8');
     try {
       this.publisher_.publish(jMsg.channel,RespBuff);
     } catch(e) {
-      console.log('DHTDaemon::onMeshData_::::e=<',e,'>');
+      console.log('DHTDaemon::onPublishData_::::e=<',e,'>');
     }
   };
 
+  async onDeliveryData_(jMsg) {
+    console.log('onDeliveryData_::jMsg=<',jMsg,'>');
+    const meshResp = {
+      cb:jMsg.cb,
+      delivery:jMsg.delivery
+    };
+    this.dht_.delivery(jMsg.peer,jMsg.delivery,jMsg.cb);
+    const RespBuff = Buffer.from(JSON.stringify(meshResp),'utf-8');
+    try {
+      this.publisher_.publish(jMsg.channel,RespBuff);
+    } catch(e) {
+      console.log('DHTDaemon::onDeliveryData_::::e=<',e,'>');
+    }
+  };
 };
 
 module.exports = DHTDaemon;

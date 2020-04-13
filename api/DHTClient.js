@@ -7,8 +7,6 @@ const crypto = require('crypto');
 const base32 = require("base32.js");
 const CryptoJS = require('crypto-js');
 const bs32Option = { type: "crockford", lc: true };
-const https = require('https');
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 
 const DefaultDaemonListenChannel = 'dht.mesh.api.daemon.listen';
 const iConstMaxResultsOnce = 20;
@@ -38,13 +36,20 @@ class DHTClient {
     const cbTag = this.writeData_(msg);
     this.cb_[cbTag] = cb;
   }
-  mesh(msg,cb) {
-    //console.log('DHTClient::mesh msg=<',msg,'>');
+  publish(msg,cb) {
+    //console.log('DHTClient::publish msg=<',msg,'>');
     const msgMesh = {
-      mesh:msg
+      publish:msg
     };
     const cbTag = this.writeData_(msgMesh);
     this.cb_[cbTag] = cb;
+  }
+  delivery(peer,msg) {
+    //console.log('DHTClient::delivery msg=<',msg,'>');
+    const msgMesh = {
+      delivery:msg,
+      peer:peer
+    };
   }
 
   
