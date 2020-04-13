@@ -33,6 +33,7 @@ class DHT {
     const publishDataMsg = {
       address:address,
       cb:cb,
+      from:this.info_.id,
       publish:{
         footprint:[this.info_.id],
         payload:payload
@@ -41,13 +42,26 @@ class DHT {
     this.peer_.publish(publishDataMsg);
     return {address:address,footprint:this.info_.id};
   }
+  async delivery(peer,payload) {
+    console.log('DHT::delivery peer=<',peer,'>');
+    console.log('DHT::delivery payload=<',payload,'>');
+    const deliveryDataMsg = {
+      address:peer,
+      delivery:{
+        footprint:[this.info_.id],
+        payload:payload
+      }
+    };
+    this.peer_.delivery(deliveryDataMsg);
+    return {address:peer,footprint:this.info_.id};
+  }
+
   
   // inside method.
   onPeerJoint_(peer) {
     console.log('DHT::onPeerJoint_ peer=<',peer,'>');
   }
-  async onRemotePublish_(address,publishMsg) {
-    console.log('DHT::onRemotePublish_ address=<',address,'>');
+  async onRemotePublish_(publishMsg) {
     console.log('DHT::onRemotePublish_ publishMsg=<',publishMsg,'>');
   }
   async onRemoteDelivery_(deliveryMsg) {

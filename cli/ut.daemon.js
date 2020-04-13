@@ -18,7 +18,8 @@ const config = {
   ],
   reps: {
     dht:dhtPath,
-  }
+  },
+  concern:true
 };
 //console.log(':: config=<',config,'>');
 const DHT = require('../src/dht.js');
