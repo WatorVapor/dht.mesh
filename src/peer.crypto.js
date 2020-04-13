@@ -23,8 +23,8 @@ class PeerCrypto {
     }
     //console.log('PeerCrypto::loadKey this.keyMaster=<',this.keyMaster,'>');
     this.calcKeyID__();
-    console.log('PeerCrypto::constructor this.id=<',this.id,'>');
-    console.log('PeerCrypto::constructor this.address=<',this.address,'>');
+    //console.log('PeerCrypto::constructor this.id=<',this.id,'>');
+    //console.log('PeerCrypto::constructor this.address=<',this.address,'>');
   }
   sign(msg) {
     let now = new Date();

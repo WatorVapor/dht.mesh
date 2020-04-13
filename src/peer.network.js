@@ -73,9 +73,13 @@ class PeerNetWork {
       } else if (msgJson.pong) {
         //console.log('onMessageCtrlServer__ msgJson=<',msgJson,'>');
         this.onPeerPong__(rPeerId, msgJson.pong);
-      } else if (msgJson.mesh) {
+      ////
+      } else if (msgJson.publish) {
           //console.log('onMessageCtrlServer__ msgJson=<',msgJson,'>');
-          this.onMeshRemote__(rPeerId, msgJson);
+          this.onRemotePublish__(rPeerId, msgJson);
+      } else if (msgJson.delivery) {
+          //console.log('onMessageCtrlServer__ msgJson=<',msgJson,'>');
+          this.onRemoteDelivery__(rPeerId, msgJson);
       } else {
         console.log('onMessageCtrlServer__ msgJson=<', msgJson, '>');
       }
@@ -270,23 +274,44 @@ class PeerNetWork {
   }
 
   
-  onMeshRemote__(peerFrom,remoteMsg) {
-    //console.log('PeerNetWork::onMeshRemote__ peerFrom=<', peerFrom, '>');
-    //console.log('PeerNetWork::onMeshRemote__ remoteMsg=<', remoteMsg, '>');
+  onRemotePublish__(peerFrom,remoteMsg) {
+    //console.log('PeerNetWork::onRemotePublish__ peerFrom=<', peerFrom, '>');
+    //console.log('PeerNetWork::onRemotePublish__ remoteMsg=<', remoteMsg, '>');
     const address = remoteMsg.address;
     const relayPeer = this.route_.calcContent(address);
-    //console.log('PeerNetWork::onMeshRemote__ relayPeer=<',relayPeer,'>');
+    //console.log('PeerNetWork::onRemotePublish__ relayPeer=<',relayPeer,'>');
     if(remoteMsg.footprint && remoteMsg.footprint.length > 0 ) {
       remoteMsg.footprint.push(this.crypto_.id);
     }
     if(relayPeer.min === this.crypto_.id || relayPeer.max === this.crypto_.id) {
-      this.onMeshRemote(address,remoteMsg.mesh);
+      this.onRemotePublish(address,remoteMsg.publish);
     } else if(relayPeer.min !== peerFrom) {
       this.relayMsgTo_(relayPeer.min,remoteMsg);
     } else if(relayPeer.max !== peerFrom) {
       this.relayMsgTo_(relayPeer.max,remoteMsg);
     }
   }
+
+  onRemoteDelivery__(peerFrom,remoteMsg) {
+    //console.log('PeerNetWork::onRemoteDelivery__ peerFrom=<', peerFrom, '>');
+    //console.log('PeerNetWork::onRemoteDelivery__ remoteMsg=<', remoteMsg, '>');
+    if(remoteMsg.peer === this.crypto_.id) {
+      this.onRemoteDelivery(remoteMsg.delivery);
+      return;
+    }
+    const address = remoteMsg.address;
+    const relayPeer = this.route_.calcContent(address);
+    //console.log('PeerNetWork::onRemoteDelivery__ relayPeer=<',relayPeer,'>');
+    if(remoteMsg.footprint && remoteMsg.footprint.length > 0 ) {
+      remoteMsg.footprint.push(this.crypto_.id);
+    }
+    if(relayPeer.min !== peerFrom) {
+      this.relayMsgTo_(relayPeer.min,remoteMsg);
+    } else if(relayPeer.max !== peerFrom) {
+      this.relayMsgTo_(relayPeer.max,remoteMsg);
+    }
+  }
+
 }
 
 module.exports = PeerNetWork;

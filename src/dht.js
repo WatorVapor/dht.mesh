@@ -18,26 +18,27 @@ class DHT {
       }
     };
     this.peer_.onPeerJoint = this.onPeerJoint_.bind(this);
-    this.peer_.onMeshRemote = this.onMeshRemote_.bind(this);
+    this.peer_.onRemotePublish = this.onRemotePublish_.bind(this);
+    this.peer_.onRemoteDelivery = this.onRemoteDelivery_.bind(this);
     this.getInvokers_ = {};
   }
   peerInfo() {
     return this.info_;
   }
-  async mesh(payload,cb) {
-    console.log('DHT::mesh payload=<',payload,'>');
-    console.log('DHT::mesh cb=<',cb,'>');
+  async publish(payload,cb) {
+    console.log('DHT::publish payload=<',payload,'>');
+    console.log('DHT::publish cb=<',cb,'>');
     const address = this.crypto_.calcResourceAddress(payload);
-    console.log('DHT::mesh address=<',address,'>');
-    const pushDataMsg = {
+    console.log('DHT::publish address=<',address,'>');
+    const publishDataMsg = {
       address:address,
       cb:cb,
-      mesh:{
+      publish:{
         footprint:[this.info_.id],
         payload:payload
       }
     };
-    this.peer_.publish(pushDataMsg);
+    this.peer_.publish(publishDataMsg);
     return {address:address,footprint:this.info_.id};
   }
   
@@ -45,10 +46,12 @@ class DHT {
   onPeerJoint_(peer) {
     console.log('DHT::onPeerJoint_ peer=<',peer,'>');
   }
-  async onMeshRemote_(address,meshMsg) {
-    console.log('DHT::onMeshRemote_ address=<',address,'>');
-    console.log('DHT::onMeshRemote_ meshMsg=<',meshMsg,'>');
+  async onRemotePublish_(address,publishMsg) {
+    console.log('DHT::onRemotePublish_ address=<',address,'>');
+    console.log('DHT::onRemotePublish_ publishMsg=<',publishMsg,'>');
   }
-
+  async onRemoteDelivery_(deliveryMsg) {
+    console.log('DHT::onRemoteDelivery_ deliveryMsg=<',deliveryMsg,'>');
+  }
 }
 module.exports = DHT;

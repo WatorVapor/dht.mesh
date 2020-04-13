@@ -7,7 +7,7 @@ dht.peerInfo((peerInfo)=>{
   console.log('dht.peerInfo:: peerInfo=<',peerInfo,'>');
 });
 const meshMsg = ()=> {
-  dht.mesh('https://en.wikipedia.org/wiki/Kademlia',(info) => {
+  dht.publish('https://en.wikipedia.org/wiki/Kademlia',(info) => {
     console.log('dht.publish:: info=<',info,'>');
   });
 };
