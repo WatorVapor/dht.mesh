@@ -2,6 +2,7 @@
 //const bs58 = require('bs58');
 const base32 = require("base32.js");
 const bitwise = require("bitwise");
+const bigInt = require("big-integer");
 
 class PeerRoute {
   constructor(crypto) {
@@ -24,8 +25,7 @@ class PeerRoute {
       this.respBuckets_[distance] = {};
     }
     this.respBuckets_[distance][peer] = {};
-    //console.log('PeerRoute::addPeer this.buckets_=<',this.buckets_,'>');
-    //.log('PeerRoute::addPeer this.respBuckets_=<',this.respBuckets_,'>');      
+    console.log('PeerRoute::addPeer this.buckets_=<',this.buckets_,'>');
   }
 
   updatePeer(peer,ttr) {
@@ -64,12 +64,14 @@ class PeerRoute {
     }
     console.log('PeerRoute::removePeer this.buckets_=<',this.buckets_,'>');
   }
+  
+  
   calcContent(address) {
     //console.log('PeerRoute::calcContent address=<',address,'>');
     //console.log('PeerRoute::calcContent this.id_=<',this.id_,'>');
-    let distanceMin = 161;
+    let distanceMin = bigInt('ffffffffffffffffffffffffffffffffffffffff',16);
     let peerMin = false;
-    let distanceMax = 0;
+    let distanceMax = bigInt('0000000000000000000000000000000000000000',16);
     let peerMax = false;
     for(const bucketIndex in this.buckets_) {
       //console.log('PeerRoute::calcContent bucketIndex=<',bucketIndex,'>');
@@ -78,11 +80,11 @@ class PeerRoute {
         //console.log('PeerRoute::calcContent peerId=<',peerId,'>');
         const distance = this.calcDistance_(address,peerId);
         //console.log('PeerRoute::calcContent distance=<',distance,'>');
-        if(distanceMin > distance) {
+        if(distanceMin.gt(distance)) {
           distanceMin = distance;
           peerMin = peerId;
         }
-        if(distanceMax < distance) {
+        if(distanceMax.lt(distance)) {
           distanceMax = distance;
           peerMax = peerId;
         }
@@ -125,17 +127,6 @@ class PeerRoute {
     //console.log('PeerRoute::calcPeer peerMax=<',peerMax,'>');
     return {min:peerMin,max:peerMax};
   }
-
-  
-  isFinal(peer) {
-    if(this.nearest === peer) {
-      return true;
-    }
-    if(this.farthest === peer) {
-      return true;
-    }
-    return false;
-  }
   
   calcDistance_(address,peer) {
     //console.log('PeerRoute::calcDistance_ address=<',address,'>');
@@ -144,8 +135,12 @@ class PeerRoute {
     const peerBuf = base32.decode(peer);
     const distanceBuf = bitwise.buffer.xor(addressBuf,peerBuf,false);
     //console.log('PeerRoute::calcDistance_ distanceBuf=<',distanceBuf,'>');
+    return bigInt(distanceBuf.toString('hex'),16);
+    
+    /*
     const distanceBit = bitwise.buffer.read(distanceBuf);
     //console.log('PeerRoute::calcDistance_ distanceBit=<',distanceBit,'>');
+    
     let distanceXor = 0;
     for(const bit of distanceBit) {
       if(bit) {
@@ -154,6 +149,7 @@ class PeerRoute {
     }
     //console.log('PeerRoute::calcDistance_ distanceXor=<',distanceXor,'>');
     return distanceXor;
+    */
   }
 }
 
