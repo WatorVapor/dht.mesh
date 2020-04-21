@@ -9,23 +9,27 @@ class PeerRoute {
     //console.log('PeerRoute::constructor peers=<',peers,'>');
     this.crypto_ = crypto;
     this.id_ = this.crypto_.id;
-    this.buckets_ = {};
-    this.respBuckets_ = {};
+    this.trapBuckets_ = {};
+    this.fullBuckets_ = {};
   }
-  addPeer(peer) {
+  addPeer(peer,trap) {
     //console.log('PeerRoute::addPeer peer=<',peer,'>');
     //console.log('PeerRoute::addPeer this.id_=<',this.id_,'>');
+    //console.log('PeerRoute::addPeer trap=<',trap,'>');
     const distance = this.calcDistance_(peer,this.id_);
     //console.log('PeerRoute::addPeer distance=<',distance,'>');
-    if(!this.buckets_[distance]) {
-      this.buckets_[distance] = {};
+    if(trap) {
+      if(!this.trapBuckets_[distance]) {
+        this.trapBuckets_[distance] = {};
+      }
+      this.trapBuckets_[distance][peer] = {};
     }
-    this.buckets_[distance][peer] = {};
-    if(!this.respBuckets_[distance]) {
-      this.respBuckets_[distance] = {};
+    console.log('PeerRoute::addPeer this.trapBuckets_=<',this.trapBuckets_,'>');
+    if(!this.fullBuckets_[distance]) {
+      this.fullBuckets_[distance] = {};
     }
-    this.respBuckets_[distance][peer] = {};
-    //console.log('PeerRoute::addPeer this.buckets_=<',this.buckets_,'>');
+    this.fullBuckets_[distance][peer] = {};
+    console.log('PeerRoute::addPeer this.fullBuckets_=<',this.fullBuckets_,'>');
   }
 
   updatePeer(peer,ttr) {
@@ -34,35 +38,35 @@ class PeerRoute {
     //console.log('PeerRoute::updatePeer this.id_=<',this.id_,'>');
     const distance = this.calcDistance_(peer,this.id_);
     //console.log('PeerRoute::updatePeer distance=<',distance,'>');
-    if(!this.buckets_[distance]) {
-      this.buckets_[distance] = {};
+    if(!this.trapBuckets_[distance]) {
+      this.trapBuckets_[distance] = {};
     }
-    this.buckets_[distance][peer] = ttr;
-    //console.log('PeerRoute::updatePeer this.buckets_=<',this.buckets_,'>');
-    if(!this.respBuckets_[distance]) {
-      this.respBuckets_[distance] = {};
+    if(this.trapBuckets_[distance] && this.trapBuckets_[distance][peer]) {
+      this.trapBuckets_[distance][peer] = ttr;
     }
-    this.respBuckets_[distance][peer] = ttr;
-    console.log('PeerRoute::updatePeer this.buckets_=<',this.buckets_,'>');      
-    console.log('PeerRoute::updatePeer this.respBuckets_=<',this.respBuckets_,'>');      
+    console.log('PeerRoute::updatePeer this.trapBuckets_=<',this.trapBuckets_,'>');
+    if(this.fullBuckets_[distance] && this.fullBuckets_[distance][peer]) {
+      this.fullBuckets_[distance][peer] = ttr;
+    }
+    console.log('PeerRoute::updatePeer this.fullBuckets_=<',this.fullBuckets_,'>');      
   }
 
   removePeer(peer) {
     console.log('PeerRoute::removePeer peer=<',peer,'>');
-    for(const bucketIndex in this.buckets_) {
-      const bucket = this.buckets_[bucketIndex];
+    for(const bucketIndex in this.trapBuckets_) {
+      const bucket = this.trapBuckets_[bucketIndex];
       if(bucket[peer]) {
-        delete this.buckets_[bucketIndex][peer];
+        delete this.trapBuckets_[bucketIndex][peer];
       }
     }
-    console.log('PeerRoute::removePeer this.buckets_=<',this.buckets_,'>');
-    for(const bucketIndex in this.respBuckets_) {
-      const bucket = this.respBuckets_[bucketIndex];
+    console.log('PeerRoute::removePeer this.trapBuckets_=<',this.trapBuckets_,'>');
+    for(const bucketIndex in this.fullBuckets_) {
+      const bucket = this.fullBuckets_[bucketIndex];
       if(bucket[peer]) {
-        delete this.respBuckets_[bucketIndex][peer];
+        delete this.fullBuckets_[bucketIndex][peer];
       }
     }
-    console.log('PeerRoute::removePeer this.buckets_=<',this.buckets_,'>');
+    console.log('PeerRoute::removePeer this.fullBuckets_=<',this.fullBuckets_,'>');
   }
   
   
@@ -73,9 +77,9 @@ class PeerRoute {
     let peerMin = false;
     let distanceMax = bigInt('0000000000000000000000000000000000000000',16);
     let peerMax = false;
-    for(const bucketIndex in this.buckets_) {
+    for(const bucketIndex in this.trapBuckets_) {
       //console.log('PeerRoute::calcContent bucketIndex=<',bucketIndex,'>');
-      let bucket = this.buckets_[bucketIndex];
+      let bucket = this.trapBuckets_[bucketIndex];
       for(const peerId in bucket) {
         //console.log('PeerRoute::calcContent peerId=<',peerId,'>');
         const distance = this.calcDistance_(address,peerId);
@@ -104,9 +108,9 @@ class PeerRoute {
     let peerMin = false;
     let distanceMax = 0;
     let peerMax = false;
-    for(const bucketIndex in this.respBuckets_) {
+    for(const bucketIndex in this.fullBuckets_) {
       //console.log('PeerRoute::calcPeer bucketIndex=<',bucketIndex,'>');
-      let bucket = this.respBuckets_[bucketIndex];
+      let bucket = this.fullBuckets_[bucketIndex];
       for(const peerId in bucket) {
         //console.log('PeerRoute::calcPeer peerId=<',peerId,'>');
         const distance = this.calcDistance_(peerAddress,peerId);

@@ -77,7 +77,8 @@ class PeerNetWork {
       }
       const rPeerId = this.crypto_.calcID(msgJson);
       if (msgJson.entrance) {
-        this.onNewNodeEntry__(rPeerId, rinfo.address, msgJson.listen);
+        //console.log('onMessageCtrlServer__ msgJson=<', msgJson, '>');
+        this.onNewNodeEntry__(rPeerId, rinfo.address, msgJson.listen,msgJson.trap);
       } else if (msgJson.welcome) {
         this.onWelcomeNode__(msgJson.welcome);
       } else if (msgJson.ping) {
@@ -101,7 +102,7 @@ class PeerNetWork {
     }
   };
 
-  onNewNodeEntry__(id, rAddress, listen) {
+  onNewNodeEntry__(id, rAddress, listen,trap) {
     //console.log('onNewNodeEntry__ id=<',id,'>');
     //console.log('onNewNodeEntry__ rAddress=<',rAddress,'>');
     //console.log('onNewNodeEntry__ listen=<',listen,'>');
@@ -109,6 +110,7 @@ class PeerNetWork {
     this.peers[id] = {
       host: rAddress,
       port: listen.port,
+      trap:trap
     };
     //console.log('onNewNodeEntry__ this.peers=<', this.peers, '>');
 
@@ -132,7 +134,7 @@ class PeerNetWork {
     for(const peerid in this.peers) {
       //console.log('onWelcomeNode__ peerid=<',peerid,'>');
       const peerNew = Object.assign({},this.peers[peerid]);
-      this.route_.addPeer(peerid);
+      this.route_.addPeer(peerid,this.peers[peerid].trap);
     }
   }
 
@@ -196,14 +198,14 @@ class PeerNetWork {
 
 
 
-  doClientEntry__(entrance, listen ,storage) {
+  doClientEntry__(entrance, listen ,trap) {
     console.log('doClientEntry__ entrance=<', entrance, '>');
     for (let address of entrance) {
       console.log('doClientEntry__ address=<', address, '>');
       let msg = {
         entrance: true,
         listen: listen,
-        storage:storage
+        trap:trap
       };
       let msgSign = this.crypto_.sign(msg);
       const bufMsg = Buffer.from(JSON.stringify(msgSign));
@@ -250,14 +252,15 @@ class PeerNetWork {
     console.log('onListenCtrlServer address=<', address, '>');
     const self = this;
     setTimeout(()=>{
-      self.doClientEntry__(self.config.entrance,self.config.listen);
+      self.doClientEntry__(self.config.entrance,self.config.listen,self.config.trap);
     },0);
     setTimeout(()=>{
       self.doClientPing__();
     },1000*1);
     this.peers[this.crypto_.id] = {
       host: this.machine_.readMachienIp(),
-      ports: this.config.listen
+      ports: this.config.listen,
+      trap:this.config.trap
     };
   };
   
