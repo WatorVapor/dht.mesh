@@ -16,7 +16,7 @@ class PeerRoute {
     //console.log('PeerRoute::addPeer peer=<',peer,'>');
     //console.log('PeerRoute::addPeer this.id_=<',this.id_,'>');
     //console.log('PeerRoute::addPeer trap=<',trap,'>');
-    const distance = this.calcDistance_(peer,this.id_);
+    const distance = this.calcDistanceBit_(peer,this.id_);
     //console.log('PeerRoute::addPeer distance=<',distance,'>');
     if(trap) {
       if(!this.trapBuckets_[distance]) {
@@ -36,7 +36,7 @@ class PeerRoute {
     //console.log('PeerRoute::updatePeer peer=<',peer,'>');
     //console.log('PeerRoute::updatePeer ttr=<',ttr,'>');
     //console.log('PeerRoute::updatePeer this.id_=<',this.id_,'>');
-    const distance = this.calcDistance_(peer,this.id_);
+    const distance = this.calcDistanceBit_(peer,this.id_);
     //console.log('PeerRoute::updatePeer distance=<',distance,'>');
     if(!this.trapBuckets_[distance]) {
       this.trapBuckets_[distance] = {};
@@ -154,6 +154,23 @@ class PeerRoute {
     //console.log('PeerRoute::calcDistance_ distanceXor=<',distanceXor,'>');
     return distanceXor;
     */
+  }
+  calcDistanceBit_(address,peer) {
+    const addressBuf = base32.decode(address);
+    const peerBuf = base32.decode(peer);
+    const distanceBuf = bitwise.buffer.xor(addressBuf,peerBuf,false);
+    //console.log('PeerRoute::calcDistance_ distanceBuf=<',distanceBuf,'>');   
+    const distanceBit = bitwise.buffer.read(distanceBuf);
+    //console.log('PeerRoute::calcDistance_ distanceBit=<',distanceBit,'>'); 
+    let firstBit = -1;
+    for(const bit of distanceBit) {
+      firstBit++;
+      if(bit) {
+        break;
+      }
+    }
+    //console.log('PeerRoute::calcDistance_ firstBit=<',firstBit,'>');
+    return firstBit;
   }
 }
 
