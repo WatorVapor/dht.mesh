@@ -4,6 +4,7 @@ const dgram = require("dgram");
 const PeerMachine = require('./peer.machine.js');
 const PeerCrypto = require('./peer.crypto.js');
 const PeerRoute = require('./peer.route.js');
+const PeerBucket = require('./peer.bucket.js');
 
 const iConstMaxTTRInMs = 1000 * 5;
 
@@ -14,7 +15,8 @@ class PeerNetWork {
 
     this.crypto_ = new PeerCrypto(config);
     this.machine_ = new PeerMachine(config);
-    this.route_ = new PeerRoute(this.crypto_);
+    this.bucket_ = new PeerBucket(this.crypto_);
+    this.route_ = new PeerRoute(this.crypto_,this.bucket_);
 
     this.serverCtrl = dgram.createSocket("udp6");
     this.client = dgram.createSocket("udp6");
@@ -125,7 +127,7 @@ class PeerNetWork {
     for(const peerid in this.peers) {
       //console.log('onWelcomeNode__ peerid=<',peerid,'>');
       const peerNew = Object.assign({},this.peers[peerid]);
-      this.route_.addPeer(peerid,this.peers[peerid].trap);
+      this.bucket_.addPeer(peerid,this.peers[peerid].trap);
     }
   }
   onWelcomeNode__(welcome) {
@@ -139,7 +141,7 @@ class PeerNetWork {
     for(const peerid in this.peers) {
       //console.log('onWelcomeNode__ peerid=<',peerid,'>');
       const peerNew = Object.assign({},this.peers[peerid]);
-      this.route_.addPeer(peerid,this.peers[peerid].trap);
+      this.bucket_.addPeer(peerid,this.peers[peerid].trap);
     }
   }
 
@@ -176,8 +178,11 @@ class PeerNetWork {
         //console.log('onPeerPing__ err=<',err,'>');
       });
     } else {
-      console.log('onPeerPing___ this.peers=<',this.peers,'>');
-      console.log('onPeerPing___ peerid=<',peerid,'>');
+      //console.log('onPeerPing___ this.peers=<',this.peers,'>');
+      //console.log('onPeerPing___ peerid=<',peerid,'>');
+      //console.log('onPeerPing___ msgJson=<',msgJson,'>');
+      this.peers[peerid] = Object.assign({}, msgJson.ping);
+      //console.log('onPeerPing___ this.peers=<',this.peers,'>');
     }
     //console.log('onPeerPing___ this.peers=<',this.peers,'>');    
   }
@@ -194,9 +199,9 @@ class PeerNetWork {
       //console.log('onPeerPong__ this.peers[peerid]=<',this.peers[peerid],'>');
       this.peers[peerid].ttr = ttr;
       if(ttr < iConstMaxTTRInMs) {
-        this.route_.updatePeer(peerid,ttr);
+        this.bucket_.updatePeer(peerid,ttr);
       } else {
-        this.route_.removePeer(peerid);
+        this.bucket_.removePeer(peerid);
       }
     }
     //console.log('onPeerPong__ this.peers=<',JSON.stringify(this.peers,undefined,2),'>');
