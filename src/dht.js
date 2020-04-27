@@ -62,9 +62,11 @@ class DHT {
     console.log('DHT::onPeerJoint_ peer=<',peer,'>');
   }
   async onRemotePublish_(publishMsg) {
+    console.log('DHT::onRemotePublish_ this.crypto_.id=<',this.crypto_.id,'>');
     console.log('DHT::onRemotePublish_ publishMsg=<',publishMsg,'>');
   }
   async onRemoteDelivery_(deliveryMsg) {
+    console.log('DHT::onRemoteDelivery_ this.crypto_.id=<',this.crypto_.id,'>');
     console.log('DHT::onRemoteDelivery_ deliveryMsg=<',deliveryMsg,'>');
   }
 }

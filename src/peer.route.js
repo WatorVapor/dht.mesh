@@ -104,9 +104,9 @@ class PeerRoute {
   calcPeer(peerAddress) {
     //console.log('PeerRoute::calcPeer peerAddress=<',peerAddress,'>');
     //console.log('PeerRoute::calcPeer this.id_=<',this.id_,'>');
-    let distanceMin = 161;
+    let distanceMin = bigInt('ffffffffffffffffffffffffffffffffffffffff',16);
     let peerMin = false;
-    let distanceMax = 0;
+    let distanceMax = bigInt('0000000000000000000000000000000000000000',16);
     let peerMax = false;
     for(const bucketIndex in this.fullBuckets_) {
       //console.log('PeerRoute::calcPeer bucketIndex=<',bucketIndex,'>');

@@ -102,12 +102,12 @@ class PeerNetWork {
     }
   };
 
-  onNewNodeEntry__(id, rAddress, listen,trap) {
-    //console.log('onNewNodeEntry__ id=<',id,'>');
+  onNewNodeEntry__(peerid, rAddress, listen,trap) {
+    //console.log('onNewNodeEntry__ peerid=<',peerid,'>');
     //console.log('onNewNodeEntry__ rAddress=<',rAddress,'>');
     //console.log('onNewNodeEntry__ listen=<',listen,'>');
     //console.log('onNewNodeEntry__ this.peers=<',this.peers,'>');
-    this.peers[id] = {
+    this.peers[peerid] = {
       host: rAddress,
       port: listen.port,
       trap:trap
@@ -122,6 +122,11 @@ class PeerNetWork {
     this.client.send(bufMsg, listen.port, rAddress, (err) => {
       //console.log('onNewNodeEntry__ err=<',err,'>');
     });
+    for(const peerid in this.peers) {
+      //console.log('onWelcomeNode__ peerid=<',peerid,'>');
+      const peerNew = Object.assign({},this.peers[peerid]);
+      this.route_.addPeer(peerid,this.peers[peerid].trap);
+    }
   }
   onWelcomeNode__(welcome) {
     console.log('onWelcomeNode__ welcome=<',welcome,'>');
@@ -139,6 +144,7 @@ class PeerNetWork {
   }
 
   onPeerPing__(peerid,msgJson) {
+    //console.log('onPeerPing__ peerid=<',peerid,'>');
     //console.log('onPeerPing__ msgJson=<',msgJson,'>');
     const sentTp = new Date(msgJson.sign.ts);
     sentTp.setMilliseconds(msgJson.sign.ms);
@@ -170,8 +176,8 @@ class PeerNetWork {
         //console.log('onPeerPing__ err=<',err,'>');
       });
     } else {
-      //console.log('onPeerPing___ this.peers=<',this.peers,'>');
-      //console.log('onPeerPing___ peerid=<',peerid,'>');
+      console.log('onPeerPing___ this.peers=<',this.peers,'>');
+      console.log('onPeerPing___ peerid=<',peerid,'>');
     }
     //console.log('onPeerPing___ this.peers=<',this.peers,'>');    
   }
@@ -199,9 +205,9 @@ class PeerNetWork {
 
 
   doClientEntry__(entrance, listen ,trap) {
-    console.log('doClientEntry__ entrance=<', entrance, '>');
+    //console.log('doClientEntry__ entrance=<', entrance, '>');
     for (let address of entrance) {
-      console.log('doClientEntry__ address=<', address, '>');
+      //console.log('doClientEntry__ address=<', address, '>');
       let msg = {
         entrance: true,
         listen: listen,
@@ -226,7 +232,9 @@ class PeerNetWork {
       let msgSign = this.crypto_.sign(msg);
       const bufMsg = Buffer.from(JSON.stringify(msgSign));
       this.client.send(bufMsg, peerInfo.port, peerInfo.host, (err) => {
-        //console.log('doClientPing__ err=<',err,'>');
+        if(err) {
+          console.log('doClientPing__ err=<',err,'>');
+        }
       });
     });
     const self = this;

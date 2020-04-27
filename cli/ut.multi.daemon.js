@@ -3,9 +3,9 @@ const path = require('path');
 const crypto = require('crypto');
 const DHT = require('../src/dht.js');
 const DHTDaemon = require('../api/DHTDaemon.js');
-const listenPortRange = [19991,20000];
+const listenPortRange = [19991,19995];
 //console.log(':: __filename=<',__filename,'>');
-for(const port = listenPortRange[0];port <= listenPortRange[1];port++) {
+for(let port = listenPortRange[0];port <= listenPortRange[1];port++) {
   const RandomPath = crypto.randomBytes(32).toString('hex');
   const dhtPath = '/storage/dhtfs/cluster/dht_mesh_multi_' + RandomPath + '_' + path.parse(__filename).name;
   const config = {
