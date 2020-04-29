@@ -157,7 +157,6 @@ class PeerNetWork {
     if (this.peers[peerid]) {
       //console.log('onPeerPing__ this.peers[peerid]=<',this.peers[peerid],'>');
       this.peers[peerid].tta = tta;
-
       const peerInfo = this.peers[peerid];
       const now = new Date();
       let msg = {
@@ -195,9 +194,14 @@ class PeerNetWork {
     //console.log('onPeerPong__ pingTp=<',pingTp,'>');
     const ttr = now - pingTp;
     //console.log('onPeerPong__ ttr=<',ttr,'>');
-    if (this.peers[peerid]) {
-      //console.log('onPeerPong__ this.peers[peerid]=<',this.peers[peerid],'>');
-      this.peers[peerid].ttr = ttr;
+    const peerInfo = this.peers[peerid];
+    if (peerInfo) {
+      //console.log('onPeerPong__ peerInfo=<',peerInfo,'>');
+      peerInfo.ttr = ttr;
+      if(peerInfo.pat) {
+        delete peerInfo.pat;
+      }
+      //console.log('onPeerPong__ peerInfo=<',peerInfo,'>');
       if(ttr < iConstMaxTTRInMs) {
         this.bucket_.updatePeer(peerid,ttr);
       } else {
@@ -230,6 +234,14 @@ class PeerNetWork {
     //console.log('doClientPing__ this.peers=<',this.peers,'>');
     this.eachRemotePeer__((peer, peerInfo) => {
       //console.log('doClientPing__ peer=<',peer,'>');
+      if(peerInfo.pat) {
+        //console.log('doClientPing__ peer=<',peer,'>');
+        //console.log('doClientPing__ peerInfo=<',peerInfo,'>');
+        this.bucket_.removePeer(peer);
+        delete this.peers[peer];
+        return;
+      }
+      peerInfo.pat = new Date().toGMTString();
       //console.log('doClientPing__ peerInfo=<',peerInfo,'>');
       let msg = {
         ping: peerInfo

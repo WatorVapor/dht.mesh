@@ -12,40 +12,46 @@ class PeerBucket {
     this.fullBuckets_ = {};
   }
   addPeer(peer,trap) {
+    if(peer === this.id_) {
+      return;
+    }
     //console.log('PeerBucket::addPeer peer=<',peer,'>');
     //console.log('PeerBucket::addPeer this.id_=<',this.id_,'>');
     //console.log('PeerBucket::addPeer trap=<',trap,'>');
-    const distance = this.calcDistanceBit_(peer,this.id_);
-    //console.log('PeerBucket::addPeer distance=<',distance,'>');
+    const distanceIndex = this.calcDistanceBit_(peer,this.id_);
+    //console.log('PeerBucket::addPeer distanceIndex=<',distanceIndex,'>');
     if(trap) {
-      if(!this.trapBuckets_[distance]) {
-        this.trapBuckets_[distance] = {};
+      if(!this.trapBuckets_[distanceIndex]) {
+        this.trapBuckets_[distanceIndex] = {};
       }
-      this.trapBuckets_[distance][peer] = {};
+      this.trapBuckets_[distanceIndex][peer] = {};
     }
     //console.log('PeerBucket::addPeer this.trapBuckets_=<',this.trapBuckets_,'>');
-    if(!this.fullBuckets_[distance]) {
-      this.fullBuckets_[distance] = {};
+    if(!this.fullBuckets_[distanceIndex]) {
+      this.fullBuckets_[distanceIndex] = {};
     }
-    this.fullBuckets_[distance][peer] = {};
+    this.fullBuckets_[distanceIndex][peer] = {};
     //console.log('PeerBucket::addPeer this.fullBuckets_=<',this.fullBuckets_,'>');
   }
 
   updatePeer(peer,ttr) {
+    if(peer === this.id_) {
+      return;
+    }
     //console.log('PeerBucket::updatePeer peer=<',peer,'>');
     //console.log('PeerBucket::updatePeer ttr=<',ttr,'>');
     //console.log('PeerBucket::updatePeer this.id_=<',this.id_,'>');
-    const distance = this.calcDistanceBit_(peer,this.id_);
-    //console.log('PeerBucket::updatePeer distance=<',distance,'>');
-    if(!this.trapBuckets_[distance]) {
-      this.trapBuckets_[distance] = {};
+    const distanceIndex = this.calcDistanceBit_(peer,this.id_);
+    //console.log('PeerBucket::updatePeer distanceIndex=<',distanceIndex,'>');
+    if(!this.trapBuckets_[distanceIndex]) {
+      this.trapBuckets_[distanceIndex] = {};
     }
-    if(this.trapBuckets_[distance] && this.trapBuckets_[distance][peer]) {
-      this.trapBuckets_[distance][peer] = ttr;
+    if(this.trapBuckets_[distanceIndex] && this.trapBuckets_[distanceIndex][peer]) {
+      this.trapBuckets_[distanceIndex][peer] = ttr;
     }
     //console.log('PeerBucket::updatePeer this.trapBuckets_=<',this.trapBuckets_,'>');
-    if(this.fullBuckets_[distance] && this.fullBuckets_[distance][peer]) {
-      this.fullBuckets_[distance][peer] = ttr;
+    if(this.fullBuckets_[distanceIndex] && this.fullBuckets_[distanceIndex][peer]) {
+      this.fullBuckets_[distanceIndex][peer] = ttr;
     }
     console.log('PeerBucket::updatePeer this.fullBuckets_=<',this.fullBuckets_,'>');      
   }
