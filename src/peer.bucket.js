@@ -10,6 +10,7 @@ class PeerBucket {
     this.id_ = this.crypto_.id;
     this.trapBuckets_ = {};
     this.fullBuckets_ = {};
+    this.peersFlat_ = {};
   }
   remotePeer(peer,rinfo,trap) {
     console.log('PeerBucket::remotePeer peer=<',peer,'>');
@@ -21,42 +22,24 @@ class PeerBucket {
       port:rinfo.port
     };
     const distanceIndex = this.calcDistanceBit_(peer,this.id_);
-    //console.log('PeerBucket::addPeer distanceIndex=<',distanceIndex,'>');
+    //console.log('PeerBucket::remotePeer distanceIndex=<',distanceIndex,'>');
     if(trap) {
       if(!this.trapBuckets_[distanceIndex]) {
         this.trapBuckets_[distanceIndex] = {};
       }
       this.trapBuckets_[distanceIndex][peer] = peerInfo;
     }
-    console.log('PeerBucket::addPeer this.trapBuckets_=<',this.trapBuckets_,'>');
+    console.log('PeerBucket::remotePeer this.trapBuckets_=<',this.trapBuckets_,'>');
     if(!this.fullBuckets_[distanceIndex]) {
       this.fullBuckets_[distanceIndex] = {};
     }
     this.fullBuckets_[distanceIndex][peer] = peerInfo;
     console.log('PeerBucket::updatePeer this.fullBuckets_=<',this.fullBuckets_,'>');
+    
+    this.peersFlat_[peer] = rinfo;
   }
-
-  addPeer(peer,trap) {
-    if(peer === this.id_) {
-      return;
-    }
-    //console.log('PeerBucket::addPeer peer=<',peer,'>');
-    //console.log('PeerBucket::addPeer this.id_=<',this.id_,'>');
-    //console.log('PeerBucket::addPeer trap=<',trap,'>');
-    const distanceIndex = this.calcDistanceBit_(peer,this.id_);
-    //console.log('PeerBucket::addPeer distanceIndex=<',distanceIndex,'>');
-    if(trap) {
-      if(!this.trapBuckets_[distanceIndex]) {
-        this.trapBuckets_[distanceIndex] = {};
-      }
-      this.trapBuckets_[distanceIndex][peer] = {};
-    }
-    //console.log('PeerBucket::addPeer this.trapBuckets_=<',this.trapBuckets_,'>');
-    if(!this.fullBuckets_[distanceIndex]) {
-      this.fullBuckets_[distanceIndex] = {};
-    }
-    this.fullBuckets_[distanceIndex][peer] = {};
-    //console.log('PeerBucket::addPeer this.fullBuckets_=<',this.fullBuckets_,'>');
+  fetchPeerInfo() {
+    return this.peersFlat_;
   }
 
   updatePeer(peer,ttr) {

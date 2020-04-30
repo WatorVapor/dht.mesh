@@ -11,7 +11,6 @@ const iConstMaxTTRInMs = 1000 * 5;
 class PeerNetWork {
   constructor(config,cb) {
     this.config = config;
-    this.peers = {};
     this.cb_ = cb;
 
     this.crypto_ = new PeerCrypto(config);
@@ -113,7 +112,7 @@ class PeerNetWork {
   onGoodPeerMsg_(payload,rPeerId,rinfo,sign) {
     if (payload.entrance) {
       //console.log('onMessageCtrlServer__ payload=<', payload, '>');
-      this.onNewNodeEntry__(rPeerId, rinfo.address, payload.listen,payload.trap);
+      this.onNewNodeEntry__(rPeerId, rinfo);
     } else if (payload.welcome) {
       this.onWelcomeNode__(payload.welcome);
     } else if (payload.ping) {
@@ -121,7 +120,6 @@ class PeerNetWork {
     } else if (payload.pong) {
       //console.log('onMessageCtrlServer__ payload=<',payload,'>');
       this.onPeerPong__(rPeerId, payload.pong);
-    ////
     } else if (payload.publish) {
         //console.log('onMessageCtrlServer__ payload=<',payload,'>');
         this.onRemotePublish__(rPeerId, payload);
@@ -133,56 +131,39 @@ class PeerNetWork {
     }    
   }
 
-  onNewNodeEntry__(peerid, rAddress, listen,trap) {
+  onNewNodeEntry__(peerid, rinfo) {
     //console.log('onNewNodeEntry__ peerid=<',peerid,'>');
-    //console.log('onNewNodeEntry__ rAddress=<',rAddress,'>');
-    //console.log('onNewNodeEntry__ listen=<',listen,'>');
-    //console.log('onNewNodeEntry__ this.peers=<',this.peers,'>');
-    this.peers[peerid] = {
-      host: rAddress,
-      port: listen.port,
-      trap:trap
-    };
-    //console.log('onNewNodeEntry__ this.peers=<', this.peers, '>');
-
-    const msg = {
-      welcome: this.peers
-    };
-    this.sendCtrlMsg(msg,{port:listen.port,address:rAddress});
-    for(const peerid in this.peers) {
-      //console.log('onWelcomeNode__ peerid=<',peerid,'>');
-      const peerNew = Object.assign({},this.peers[peerid]);
-      this.bucket_.addPeer(peerid,this.peers[peerid].trap);
+    console.log('onNewNodeEntry__ rinfo=<',rinfo,'>');
+    const remotePeers = this.bucket_.fetchPeerInfo();
+    //console.log('onNewNodeEntry__ remotePeers=<', remotePeers, '>');
+    remotePeers[this.crypto_.id] = {
+      address:this.host(),
+      port:this.port()
     }
+    const msg = {
+      welcome: remotePeers
+    };
+    this.sendCtrlMsg(msg,rinfo);
   }
   onWelcomeNode__(welcome) {
     console.log('onWelcomeNode__ welcome=<',welcome,'>');
-    this.peers = Object.assign(this.peers, welcome);
-    //console.log('onWelcomeNode__ this.peers=<',this.peers,'>');
-    try {
-    } catch (e) {
-      console.log('onWelcomeNode__ e=<', e, '>');
-    }
-    for(const peerid in this.peers) {
-      //console.log('onWelcomeNode__ peerid=<',peerid,'>');
-      const peerNew = Object.assign({},this.peers[peerid]);
-      this.bucket_.addPeer(peerid,this.peers[peerid].trap);
-    }
   }
 
-  onPeerPing__(peerid,sign) {
+  onPeerPing__(peerid,payload,sign) {
     //console.log('onPeerPing__ peerid=<',peerid,'>');
+    //console.log('onPeerPing__ payload=<',payload,'>');
     //console.log('onPeerPing__ sign=<',sign,'>');
-    const sentTp = new Date(sign.ts);
-    sentTp.setMilliseconds(sign.ms);
+    const sentTp = new Date(sign.t);
+    sentTp.setMilliseconds(sign.m);
     //console.log('onPeerPing__ sentTp=<',sentTp,'>');
     const recieveTp = new Date();
     const tta = recieveTp - sentTp;
     //console.log('onPeerPing__ tta=<',tta,'>');
-    if (this.peers[peerid]) {
-      //console.log('onPeerPing__ this.peers[peerid]=<',this.peers[peerid],'>');
-      this.peers[peerid].tta = tta;
-      const peerInfo = this.peers[peerid];
+    const peers = this.bucket_.fetchPeerInfo();
+    if (peers[peerid]) {
+      //console.log('onPeerPing__ peers[peerid]=<',peers[peerid],'>');
+      peers[peerid].tta = tta;
+      const peerInfo = peers[peerid];
       const now = new Date();
       const msg = {
         pong: {
@@ -198,24 +179,21 @@ class PeerNetWork {
       };
       this.sendCtrlMsg(msg,peerInfo);
     } else {
-      //console.log('onPeerPing___ this.peers=<',this.peers,'>');
       //console.log('onPeerPing___ peerid=<',peerid,'>');
       //console.log('onPeerPing___ sign=<',sign,'>');
-      this.peers[peerid] = Object.assign({}, msgJson.ping);
-      //console.log('onPeerPing___ this.peers=<',this.peers,'>');
     }
-    //console.log('onPeerPing___ this.peers=<',this.peers,'>');    
   }
   onPeerPong__(peerid, pong) {
-    //console.log('onPeerPong__ peerid=<',peerid,'>');
-    //console.log('onPeerPong__ pong=<',pong,'>');
+    console.log('onPeerPong__ peerid=<',peerid,'>');
+    console.log('onPeerPong__ pong=<',pong,'>');
     const now = new Date();
     const pingTp = new Date(pong.ping.ts);
     pingTp.setMilliseconds(pong.ping.ms);
     //console.log('onPeerPong__ pingTp=<',pingTp,'>');
     const ttr = now - pingTp;
     //console.log('onPeerPong__ ttr=<',ttr,'>');
-    const peerInfo = this.peers[peerid];
+    const peers = this.bucket_.fetchPeerInfo();
+    const peerInfo = peers[peerid];
     if (peerInfo) {
       //console.log('onPeerPong__ peerInfo=<',peerInfo,'>');
       peerInfo.ttr = ttr;
@@ -234,28 +212,24 @@ class PeerNetWork {
 
 
 
-  doClientEntry__(entrance, listen ,trap) {
+  doClientEntry__(entrance) {
     //console.log('doClientEntry__ entrance=<', entrance, '>');
     for (let address of entrance) {
       //console.log('doClientEntry__ address=<', address, '>');
       const msg = {
-        entrance: true,
-        listen: listen,
-        trap:trap
+        entrance: entrance
       };
       this.sendCtrlMsg(msg,address);
     }
   };
 
   async doClientPing__() {
-    //console.log('doClientPing__ this.peers=<',this.peers,'>');
     this.eachRemotePeer__((peer, peerInfo) => {
       //console.log('doClientPing__ peer=<',peer,'>');
       if(peerInfo.pat) {
         //console.log('doClientPing__ peer=<',peer,'>');
         //console.log('doClientPing__ peerInfo=<',peerInfo,'>');
         this.bucket_.removePeer(peer);
-        delete this.peers[peer];
         return;
       }
       peerInfo.pat = new Date().toGMTString();
@@ -273,9 +247,10 @@ class PeerNetWork {
 
   eachRemotePeer__(fn) {
     //console.log('eachRemotePeer__ this.peers=<',this.peers,'>');
-    for (let peer in this.peers) {
+    const peers = this.bucket_.fetchPeerInfo();
+    for (let peer in peers) {
       //console.log('eachRemotePeer__ peer=<',peer,'>');
-      let peerInfo = this.peers[peer];
+      let peerInfo = peers[peer];
       //console.log('eachRemotePeer__ peerInfo=<',peerInfo,'>');
       if (peer !== this.crypto_.id) {
         fn(peer, peerInfo);
@@ -288,16 +263,11 @@ class PeerNetWork {
     console.log('onListenCtrlServer address=<', address, '>');
     const self = this;
     setTimeout(()=>{
-      self.doClientEntry__(self.config.entrance,self.config.listen,self.config.trap);
+      self.doClientEntry__(self.config.entrance);
     },0);
     setTimeout(()=>{
       self.doClientPing__();
     },1000*1);
-    this.peers[this.crypto_.id] = {
-      host: this.machine_.readMachienIp(),
-      ports: this.config.listen,
-      trap:this.config.trap
-    };
   };
   
   
