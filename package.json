@@ -4,6 +4,8 @@
     "big-integer": "^1.6.48",
     "bitwise": "^2.0.4",
     "crypto-js": "^4.0.0",
+    "is-port-reachable": "^3.0.0",
+    "libnmap": "^0.4.19",
     "redis": "^3.0.2",
     "tweetnacl": "^1.0.2",
     "tweetnacl-util": "^0.15.1"

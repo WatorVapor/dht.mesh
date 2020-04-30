@@ -6,10 +6,10 @@ const PeerNetWork = require('./peer.network.js');
 
 
 class DHT {
-  constructor(config) {
+  constructor(config,cb) {
     this.config_ = config;
     this.crypto_ = new PeerCrypto(config);
-    this.peer_ = new PeerNetWork(config);
+    this.peer_ = new PeerNetWork(config,cb);
     this.info_ = {
       id:this.crypto_.id,
       peer:{

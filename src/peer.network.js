@@ -9,26 +9,41 @@ const PeerBucket = require('./peer.bucket.js');
 const iConstMaxTTRInMs = 1000 * 5;
 
 class PeerNetWork {
-  constructor(config) {
+  constructor(config,cb) {
     this.config = config;
     this.peers = {};
+    this.cb_ = cb;
 
     this.crypto_ = new PeerCrypto(config);
     this.machine_ = new PeerMachine(config);
     this.bucket_ = new PeerBucket(this.crypto_);
     this.route_ = new PeerRoute(this.crypto_,this.bucket_);
 
-    this.serverCtrl = dgram.createSocket("udp6");
+    this.serverCtrl = dgram.createSocket('udp6');
     this.client = dgram.createSocket("udp6");
     let self = this;
-    this.serverCtrl.on("listening", () => {
+    this.serverCtrl.on('listening', () => {
       self.onListenCtrlServer();
+      if(typeof self.cb_ === 'function') {
+        self.cb_();
+      }
     });
-    this.serverCtrl.on("message", (msg, rinfo) => {
+    this.serverCtrl.on('message', (msg, rinfo) => {
       self.onMessageCtrlServer__(msg, rinfo)
     });
-    this.serverCtrl.bind(config.listen.port);
-    
+    try {
+      this.serverCtrl.on('error', (err) => {
+        //throw err;
+        //console.log('PeerNetWork::constructor err=<',err,'>');
+        //console.log('PeerNetWork::constructor typeof self.cb_=<',typeof self.cb_,'>');
+        if(typeof self.cb_ === 'function') {
+          self.cb_(err);
+        }
+      });
+      this.serverCtrl.bind(config.listen.port);
+    } catch( err ) {
+      console.log('PeerNetWork::constructor err=<',err,'>');
+    }
     this.replays_ = {};
   }
   host() {
