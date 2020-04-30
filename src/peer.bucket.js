@@ -11,6 +11,31 @@ class PeerBucket {
     this.trapBuckets_ = {};
     this.fullBuckets_ = {};
   }
+  remotePeer(peer,rinfo,trap) {
+    console.log('PeerBucket::remotePeer peer=<',peer,'>');
+    console.log('PeerBucket::remotePeer rinfo=<',rinfo,'>');
+    console.log('PeerBucket::remotePeer trap=<',trap,'>');
+    const peerInfo = {
+      address:rinfo.address,
+      family:rinfo.family,
+      port:rinfo.port
+    };
+    const distanceIndex = this.calcDistanceBit_(peer,this.id_);
+    //console.log('PeerBucket::addPeer distanceIndex=<',distanceIndex,'>');
+    if(trap) {
+      if(!this.trapBuckets_[distanceIndex]) {
+        this.trapBuckets_[distanceIndex] = {};
+      }
+      this.trapBuckets_[distanceIndex][peer] = peerInfo;
+    }
+    console.log('PeerBucket::addPeer this.trapBuckets_=<',this.trapBuckets_,'>');
+    if(!this.fullBuckets_[distanceIndex]) {
+      this.fullBuckets_[distanceIndex] = {};
+    }
+    this.fullBuckets_[distanceIndex][peer] = peerInfo;
+    console.log('PeerBucket::updatePeer this.fullBuckets_=<',this.fullBuckets_,'>');
+  }
+
   addPeer(peer,trap) {
     if(peer === this.id_) {
       return;

@@ -11,6 +11,7 @@ const bs32Option = { type: "crockford", lc: true };
 class PeerCrypto {
   constructor(config) {
     //console.log('PeerCrypto::constructor config=<',config,'>');
+    this.config_ = config;
     if(!fs.existsSync(config.reps.dht)) {
       fs.mkdirSync(config.reps.dht,{ recursive: true });
     }
@@ -28,11 +29,13 @@ class PeerCrypto {
   }
   sign(msg) {
     let now = new Date();
-    const signedMsg = Object.assign({}, msg);
-    signedMsg.sign = {};
-    signedMsg.sign.ts = now.toGMTString();
-    signedMsg.sign.ms = now.getMilliseconds();
-    signedMsg.sign.pubKey = this.keyMaster.publicKey;
+    const signedMsg = {};
+    signedMsg.p = msg;
+    signedMsg.t = this.config_.trap;
+    signedMsg.s = {};
+    signedMsg.s.t = now.toGMTString();
+    signedMsg.s.m = now.getMilliseconds();
+    signedMsg.s.k = this.keyMaster.publicKey;
     
     let msgStr = JSON.stringify(signedMsg);
     let msgHash = CryptoJS.RIPEMD160(msgStr).toString(CryptoJS.enc.Base64);
@@ -40,50 +43,43 @@ class PeerCrypto {
     //console.log('PeerCrypto::sign this.secretKey=<',this.secretKey,'>');
     const signBuff = nacl.sign(nacl.util.decodeBase64(msgHash),this.secretKey);
     //console.log('PeerCrypto::sign signBuff=<',signBuff,'>');
-    signedMsg.verify = {} 
-    signedMsg.verify.hash = msgHash;
-    signedMsg.verify.signed = nacl.util.encodeBase64(signBuff);
+    signedMsg.v = nacl.util.encodeBase64(signBuff);
     return signedMsg;
   }
 
   verify(msgJson) {
     const now = new Date();
-    const msgTs = new Date(msgJson.sign.ts);
-    msgTs.setMilliseconds(msgJson.sign.ms)
+    const msgTs = new Date(msgJson.s.t);
+    msgTs.setMilliseconds(msgJson.s.m)
     const escape_time = now -msgTs;
     //console.log('PeerCrypto::verify escape_time=<',escape_time,'>');
     if(escape_time > iConstMessageOutDateInMs) {
       return false;
     }    
     const hashMsg = Object.assign({}, msgJson);
-    delete hashMsg.verify;
+    delete hashMsg.v;
     let msgStr = JSON.stringify(hashMsg);
     //console.log('PeerCrypto::verify msgStr=<',msgStr,'>');
     let msgHash = CryptoJS.RIPEMD160(msgStr).toString(CryptoJS.enc.Base64);
     //console.log('PeerCrypto::verify msgHash=<',msgHash,'>');
-    if(msgHash !== msgJson.verify.hash) {
-      console.log('PeerCrypto::verify msgJson=<',msgJson,'>');
-      console.log('PeerCrypto::verify msgHash=<',msgHash,'>');
-      return false;
-    }
     //console.log('PeerCrypto::verify msgJson=<',msgJson,'>');
-    const pubKey = nacl.util.decodeBase64(msgJson.sign.pubKey);
+    const pubKey = nacl.util.decodeBase64(msgJson.s.k);
     //console.log('PeerCrypto::verify pubKey=<',pubKey,'>');
-    const signedVal = nacl.util.decodeBase64(msgJson.verify.signed);
+    const signedVal = nacl.util.decodeBase64(msgJson.v);
     //console.log('PeerCrypto::verify signedVal=<',signedVal,'>');
     const openedMsg = nacl.sign.open(signedVal,pubKey);
     //console.log('PeerCrypto::verify openedMsg=<',openedMsg,'>');
     if(openedMsg) {
       const openedMsgB64 = nacl.util.encodeBase64(openedMsg);
       //console.log('PeerCrypto::verify openedMsgB64=<',openedMsgB64,'>');
-      if(openedMsgB64 === msgJson.verify.hash) {
+      if(openedMsgB64 === msgHash) {
         return true;
       }
     }
     return false;
   }
   calcID(msgJson) {
-    const keyRipemd = CryptoJS.RIPEMD160(msgJson.sign.pubKey).toString(CryptoJS.enc.Hex);
+    const keyRipemd = CryptoJS.RIPEMD160(msgJson.s.k).toString(CryptoJS.enc.Hex);
     const keyBuffer = Buffer.from(keyRipemd,'hex');
     return base32.encode(keyBuffer,bs32Option);
   }

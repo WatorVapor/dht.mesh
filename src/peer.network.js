@@ -20,7 +20,8 @@ class PeerNetWork {
     this.route_ = new PeerRoute(this.crypto_,this.bucket_);
 
     this.serverCtrl = dgram.createSocket('udp6');
-    this.client = dgram.createSocket("udp6");
+    //this.client = dgram.createSocket("udp6");
+    this.client = this.serverCtrl;
     let self = this;
     this.serverCtrl.on('listening', () => {
       self.onListenCtrlServer();
@@ -93,31 +94,44 @@ class PeerNetWork {
         return;
       }
       const rPeerId = this.crypto_.calcID(msgJson);
-      if (msgJson.entrance) {
-        //console.log('onMessageCtrlServer__ msgJson=<', msgJson, '>');
-        this.onNewNodeEntry__(rPeerId, rinfo.address, msgJson.listen,msgJson.trap);
-      } else if (msgJson.welcome) {
-        this.onWelcomeNode__(msgJson.welcome);
-      } else if (msgJson.ping) {
-        this.onPeerPing__(rPeerId,msgJson);
-      } else if (msgJson.pong) {
-        //console.log('onMessageCtrlServer__ msgJson=<',msgJson,'>');
-        this.onPeerPong__(rPeerId, msgJson.pong);
-      ////
-      } else if (msgJson.publish) {
-          //console.log('onMessageCtrlServer__ msgJson=<',msgJson,'>');
-          this.onRemotePublish__(rPeerId, msgJson);
-      } else if (msgJson.delivery) {
-          //console.log('onMessageCtrlServer__ msgJson=<',msgJson,'>');
-          this.onRemoteDelivery__(rPeerId, msgJson);
+      if(rPeerId !== this.crypto_.id) {
+        this.bucket_.remotePeer(rPeerId, rinfo,msgJson.t);
+      }
+      const payload = msgJson.p;
+      if(payload) {
+        this.onGoodPeerMsg_(payload,rPeerId,rinfo,msgJson.s);
       } else {
-        console.log('onMessageCtrlServer__ msgJson=<', msgJson, '>');
+        console.log('onMessageCtrlServer__ good=<', good, '>');
+        console.log('onMessageCtrlServer__ msgJson=<', msgJson, '>');        
       }
     } catch (e) {
       console.log('onMessageCtrlServer__ e=<', e, '>');
       console.log('onMessageCtrlServer__ msg.toString("utf-8")=<', msg.toString('utf-8'), '>');
     }
   };
+  
+  onGoodPeerMsg_(payload,rPeerId,rinfo,sign) {
+    if (payload.entrance) {
+      //console.log('onMessageCtrlServer__ payload=<', payload, '>');
+      this.onNewNodeEntry__(rPeerId, rinfo.address, payload.listen,payload.trap);
+    } else if (payload.welcome) {
+      this.onWelcomeNode__(payload.welcome);
+    } else if (payload.ping) {
+      this.onPeerPing__(rPeerId,payload,sign);
+    } else if (payload.pong) {
+      //console.log('onMessageCtrlServer__ payload=<',payload,'>');
+      this.onPeerPong__(rPeerId, payload.pong);
+    ////
+    } else if (payload.publish) {
+        //console.log('onMessageCtrlServer__ payload=<',payload,'>');
+        this.onRemotePublish__(rPeerId, payload);
+    } else if (payload.delivery) {
+        //console.log('onMessageCtrlServer__ payload=<',payload,'>');
+        this.onRemoteDelivery__(rPeerId, payload);
+    } else {
+      console.log('onMessageCtrlServer__ payload=<', payload, '>');
+    }    
+  }
 
   onNewNodeEntry__(peerid, rAddress, listen,trap) {
     //console.log('onNewNodeEntry__ peerid=<',peerid,'>');
@@ -131,14 +145,10 @@ class PeerNetWork {
     };
     //console.log('onNewNodeEntry__ this.peers=<', this.peers, '>');
 
-    let msg = {
+    const msg = {
       welcome: this.peers
     };
-    let msgSign = this.crypto_.sign(msg);
-    const bufMsg = Buffer.from(JSON.stringify(msgSign));
-    this.client.send(bufMsg, listen.port, rAddress, (err) => {
-      //console.log('onNewNodeEntry__ err=<',err,'>');
-    });
+    this.sendCtrlMsg(msg,{port:listen.port,address:rAddress});
     for(const peerid in this.peers) {
       //console.log('onWelcomeNode__ peerid=<',peerid,'>');
       const peerNew = Object.assign({},this.peers[peerid]);
@@ -160,11 +170,11 @@ class PeerNetWork {
     }
   }
 
-  onPeerPing__(peerid,msgJson) {
+  onPeerPing__(peerid,sign) {
     //console.log('onPeerPing__ peerid=<',peerid,'>');
-    //console.log('onPeerPing__ msgJson=<',msgJson,'>');
-    const sentTp = new Date(msgJson.sign.ts);
-    sentTp.setMilliseconds(msgJson.sign.ms);
+    //console.log('onPeerPing__ sign=<',sign,'>');
+    const sentTp = new Date(sign.ts);
+    sentTp.setMilliseconds(sign.ms);
     //console.log('onPeerPing__ sentTp=<',sentTp,'>');
     const recieveTp = new Date();
     const tta = recieveTp - sentTp;
@@ -174,7 +184,7 @@ class PeerNetWork {
       this.peers[peerid].tta = tta;
       const peerInfo = this.peers[peerid];
       const now = new Date();
-      let msg = {
+      const msg = {
         pong: {
           ping: {
             ts: sentTp.toGMTString(),
@@ -186,15 +196,11 @@ class PeerNetWork {
           }
         }
       };
-      let msgSign = this.crypto_.sign(msg);
-      const bufMsg = Buffer.from(JSON.stringify(msgSign));
-      this.client.send(bufMsg, peerInfo.port, peerInfo.host, (err) => {
-        //console.log('onPeerPing__ err=<',err,'>');
-      });
+      this.sendCtrlMsg(msg,peerInfo);
     } else {
       //console.log('onPeerPing___ this.peers=<',this.peers,'>');
       //console.log('onPeerPing___ peerid=<',peerid,'>');
-      //console.log('onPeerPing___ msgJson=<',msgJson,'>');
+      //console.log('onPeerPing___ sign=<',sign,'>');
       this.peers[peerid] = Object.assign({}, msgJson.ping);
       //console.log('onPeerPing___ this.peers=<',this.peers,'>');
     }
@@ -232,16 +238,12 @@ class PeerNetWork {
     //console.log('doClientEntry__ entrance=<', entrance, '>');
     for (let address of entrance) {
       //console.log('doClientEntry__ address=<', address, '>');
-      let msg = {
+      const msg = {
         entrance: true,
         listen: listen,
         trap:trap
       };
-      let msgSign = this.crypto_.sign(msg);
-      const bufMsg = Buffer.from(JSON.stringify(msgSign));
-      this.client.send(bufMsg, address.port, address.host, (err) => {
-        //console.log('doClientEntry__ err=<',err,'>');
-      });
+      this.sendCtrlMsg(msg,address);
     }
   };
 
@@ -258,16 +260,10 @@ class PeerNetWork {
       }
       peerInfo.pat = new Date().toGMTString();
       //console.log('doClientPing__ peerInfo=<',peerInfo,'>');
-      let msg = {
+      const msg = {
         ping: peerInfo
       };
-      let msgSign = this.crypto_.sign(msg);
-      const bufMsg = Buffer.from(JSON.stringify(msgSign));
-      this.client.send(bufMsg, peerInfo.port, peerInfo.host, (err) => {
-        if(err) {
-          console.log('doClientPing__ err=<',err,'>');
-        }
-      });
+      this.sendCtrlMsg(msg,peerInfo);
     });
     const self = this;
     setTimeout(()=>{
@@ -365,6 +361,17 @@ class PeerNetWork {
     } else if(relayPeer.max !== peerFrom) {
       this.relayMsgTo_(relayPeer.max,remoteMsg);
     }
+  }
+  
+  sendCtrlMsg(msg,address) {
+    const msgSign = this.crypto_.sign(msg);
+    //console.log('sendCtrlMsg msgSign=<',msgSign,'>');
+    const bufMsg = Buffer.from(JSON.stringify(msgSign));
+    this.client.send(bufMsg, address.port, address.host, (err) => {
+      if(err) {
+        console.log('sendCtrlMsg err=<',err,'>');
+      }
+    });    
   }
 
 }
