@@ -12,29 +12,32 @@ class PeerBucket {
     this.fullBuckets_ = {};
     this.peersFlat_ = {};
   }
-  remotePeer(peer,rinfo,trap) {
-    console.log('PeerBucket::remotePeer peer=<',peer,'>');
-    console.log('PeerBucket::remotePeer rinfo=<',rinfo,'>');
-    console.log('PeerBucket::remotePeer trap=<',trap,'>');
-    const peerInfo = {
-      address:rinfo.address,
-      family:rinfo.family,
-      port:rinfo.port
-    };
+  addPeer(peer,rinfo,trap) {
+    //console.log('PeerBucket::addPeer peer=<',peer,'>');
+    //console.log('PeerBucket::addPeer rinfo=<',rinfo,'>');
+    //console.log('PeerBucket::addPeer trap=<',trap,'>');
     const distanceIndex = this.calcDistanceBit_(peer,this.id_);
-    //console.log('PeerBucket::remotePeer distanceIndex=<',distanceIndex,'>');
+    //console.log('PeerBucket::addPeer distanceIndex=<',distanceIndex,'>');
     if(trap) {
       if(!this.trapBuckets_[distanceIndex]) {
         this.trapBuckets_[distanceIndex] = {};
       }
-      this.trapBuckets_[distanceIndex][peer] = peerInfo;
+      if(!this.trapBuckets_[distanceIndex][peer]) {
+        this.trapBuckets_[distanceIndex][peer] = {};
+      }
+      this.trapBuckets_[distanceIndex][peer].address = rinfo.address;
+      this.trapBuckets_[distanceIndex][peer].port = rinfo.port;
     }
-    console.log('PeerBucket::remotePeer this.trapBuckets_=<',this.trapBuckets_,'>');
+    //console.log('PeerBucket::addPeer this.trapBuckets_=<',this.trapBuckets_,'>');
     if(!this.fullBuckets_[distanceIndex]) {
       this.fullBuckets_[distanceIndex] = {};
     }
-    this.fullBuckets_[distanceIndex][peer] = peerInfo;
-    console.log('PeerBucket::updatePeer this.fullBuckets_=<',this.fullBuckets_,'>');
+    if(!this.fullBuckets_[distanceIndex][peer]) {
+      this.fullBuckets_[distanceIndex][peer] = {};
+    }
+    this.fullBuckets_[distanceIndex][peer].address = rinfo.address;
+    this.fullBuckets_[distanceIndex][peer].port = rinfo.port;
+    console.log('PeerBucket::addPeer this.fullBuckets_=<',this.fullBuckets_,'>');
     
     this.peersFlat_[peer] = rinfo;
   }
@@ -55,11 +58,11 @@ class PeerBucket {
       this.trapBuckets_[distanceIndex] = {};
     }
     if(this.trapBuckets_[distanceIndex] && this.trapBuckets_[distanceIndex][peer]) {
-      this.trapBuckets_[distanceIndex][peer] = ttr;
+      this.trapBuckets_[distanceIndex][peer].ttr = ttr;
     }
     //console.log('PeerBucket::updatePeer this.trapBuckets_=<',this.trapBuckets_,'>');
     if(this.fullBuckets_[distanceIndex] && this.fullBuckets_[distanceIndex][peer]) {
-      this.fullBuckets_[distanceIndex][peer] = ttr;
+      this.fullBuckets_[distanceIndex][peer].ttr = ttr;
     }
     console.log('PeerBucket::updatePeer this.fullBuckets_=<',this.fullBuckets_,'>');      
   }

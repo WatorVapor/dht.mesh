@@ -40,7 +40,10 @@ class PeerNetWork {
           self.cb_(err);
         }
       });
-      this.serverCtrl.bind(config.listen.port);
+      this.serverCtrl.bind(config.listen.port,(err)=> {
+        const ok = true;
+        console.log('PeerNetWork::constructor bind ok=<',ok,'>');
+      });
     } catch( err ) {
       console.log('PeerNetWork::constructor err=<',err,'>');
     }
@@ -93,9 +96,7 @@ class PeerNetWork {
         return;
       }
       const rPeerId = this.crypto_.calcID(msgJson);
-      if(rPeerId !== this.crypto_.id) {
-        this.bucket_.remotePeer(rPeerId, rinfo,msgJson.t);
-      }
+      this.bucket_.addPeer(rPeerId, rinfo,msgJson.t);
       const payload = msgJson.p;
       if(payload) {
         this.onGoodPeerMsg_(payload,rPeerId,rinfo,msgJson.s);
@@ -112,7 +113,7 @@ class PeerNetWork {
   onGoodPeerMsg_(payload,rPeerId,rinfo,sign) {
     if (payload.entrance) {
       //console.log('onMessageCtrlServer__ payload=<', payload, '>');
-      this.onNewNodeEntry__(rPeerId, rinfo);
+      this.onNodeEntry__(rPeerId, rinfo);
     } else if (payload.welcome) {
       this.onWelcomeNode__(payload.welcome);
     } else if (payload.ping) {
@@ -131,22 +132,23 @@ class PeerNetWork {
     }    
   }
 
-  onNewNodeEntry__(peerid, rinfo) {
-    //console.log('onNewNodeEntry__ peerid=<',peerid,'>');
-    console.log('onNewNodeEntry__ rinfo=<',rinfo,'>');
+  onNodeEntry__(peerid, rinfo) {
+    //console.log('onNodeEntry__ peerid=<',peerid,'>');
+    console.log('onNodeEntry__ rinfo=<',rinfo,'>');
     const remotePeers = this.bucket_.fetchPeerInfo();
-    //console.log('onNewNodeEntry__ remotePeers=<', remotePeers, '>');
-    remotePeers[this.crypto_.id] = {
-      address:this.host(),
-      port:this.port()
-    }
+    //console.log('onNodeEntry__ remotePeers=<', remotePeers, '>');
     const msg = {
       welcome: remotePeers
     };
     this.sendCtrlMsg(msg,rinfo);
   }
   onWelcomeNode__(welcome) {
-    console.log('onWelcomeNode__ welcome=<',welcome,'>');
+    //console.log('onWelcomeNode__ welcome=<',welcome,'>');
+    for(const peer in welcome) {
+      const peerInfo = welcome[peer];
+      //console.log('onWelcomeNode__ peerInfo=<',peerInfo,'>');
+      this.bucket_.addPeer(peer,peerInfo);
+    }
   }
 
   onPeerPing__(peerid,payload,sign) {
@@ -184,8 +186,8 @@ class PeerNetWork {
     }
   }
   onPeerPong__(peerid, pong) {
-    console.log('onPeerPong__ peerid=<',peerid,'>');
-    console.log('onPeerPong__ pong=<',pong,'>');
+    //console.log('onPeerPong__ peerid=<',peerid,'>');
+    //console.log('onPeerPong__ pong=<',pong,'>');
     const now = new Date();
     const pingTp = new Date(pong.ping.ts);
     pingTp.setMilliseconds(pong.ping.ms);
@@ -225,7 +227,7 @@ class PeerNetWork {
 
   async doClientPing__() {
     this.eachRemotePeer__((peer, peerInfo) => {
-      //console.log('doClientPing__ peer=<',peer,'>');
+      console.log('doClientPing__ peer=<',peer,'>');
       if(peerInfo.pat) {
         //console.log('doClientPing__ peer=<',peer,'>');
         //console.log('doClientPing__ peerInfo=<',peerInfo,'>');
@@ -233,7 +235,7 @@ class PeerNetWork {
         return;
       }
       peerInfo.pat = new Date().toGMTString();
-      //console.log('doClientPing__ peerInfo=<',peerInfo,'>');
+      console.log('doClientPing__ peerInfo=<',peerInfo,'>');
       const msg = {
         ping: peerInfo
       };
@@ -281,7 +283,7 @@ class PeerNetWork {
     const msgSign = this.crypto_.sign(msg);
     //console.log('sendMessage_ msgSign=<', msgSign, '>');
     const msgBuff = Buffer.from(JSON.stringify(msgSign));
-    this.client.send(msgBuff, dstPort, dstHost, (err) => {
+    this.client.send(msgBuff,dstPort, dstHost, (err) => {
       //console.log('sendMessage_ err=<',err,'>');
     });
   }
@@ -334,14 +336,21 @@ class PeerNetWork {
   }
   
   sendCtrlMsg(msg,address) {
+    //console.log('sendCtrlMsg address=<',address,'>');
     const msgSign = this.crypto_.sign(msg);
     //console.log('sendCtrlMsg msgSign=<',msgSign,'>');
     const bufMsg = Buffer.from(JSON.stringify(msgSign));
-    this.client.send(bufMsg, address.port, address.host, (err) => {
+    const host = address.host || address.address;
+    //console.log('sendCtrlMsg host=<',host,'>');
+    const port = address.port;
+    //console.log('sendCtrlMsg port=<',port,'>');
+    this.client.send(bufMsg, port,host, (err) => {
       if(err) {
         console.log('sendCtrlMsg err=<',err,'>');
+      } else {
+        //console.log('sendCtrlMsg !err=<',!err,'>');
       }
-    });    
+    });
   }
 
 }
