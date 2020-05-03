@@ -60,6 +60,7 @@ class PeerNetWork {
     //console.log('PeerNetWork::publish resource=<',resource,'>');
     const relayPeer = this.route_.calcContent(resource.address);
     console.log('PeerNetWork::publish relayPeer=<',relayPeer,'>');
+    console.log('PeerNetWork::publish this.crypto_.id=<',this.crypto_.id,'>');
     if(relayPeer.min && relayPeer.min !== this.crypto_.id) {
       this.relayMsgTo_(relayPeer.min,resource);
     }
@@ -227,7 +228,7 @@ class PeerNetWork {
 
   async doClientPing__() {
     this.eachRemotePeer__((peer, peerInfo) => {
-      console.log('doClientPing__ peer=<',peer,'>');
+      //console.log('doClientPing__ peer=<',peer,'>');
       if(peerInfo.pat) {
         //console.log('doClientPing__ peer=<',peer,'>');
         //console.log('doClientPing__ peerInfo=<',peerInfo,'>');
@@ -235,7 +236,7 @@ class PeerNetWork {
         return;
       }
       peerInfo.pat = new Date().toGMTString();
-      console.log('doClientPing__ peerInfo=<',peerInfo,'>');
+      //console.log('doClientPing__ peerInfo=<',peerInfo,'>');
       const msg = {
         ping: peerInfo
       };
@@ -275,18 +276,6 @@ class PeerNetWork {
   
   
   
-  sendMessage_(dst,msg) {
-    const dstPeer = this.peers[dst];
-    //console.log('sendMessage_ dstPeer=<', dstPeer, '>');
-    const dstHost = dstPeer.host;
-    const dstPort = dstPeer.port;
-    const msgSign = this.crypto_.sign(msg);
-    //console.log('sendMessage_ msgSign=<', msgSign, '>');
-    const msgBuff = Buffer.from(JSON.stringify(msgSign));
-    this.client.send(msgBuff,dstPort, dstHost, (err) => {
-      //console.log('sendMessage_ err=<',err,'>');
-    });
-  }
 
   relayMsgTo_(dst,msg) {
     //console.log('PeerNetWork::relayMsgTo_ dst=<', dst, '>');
@@ -334,6 +323,24 @@ class PeerNetWork {
       this.relayMsgTo_(relayPeer.max,remoteMsg);
     }
   }
+
+  sendMessage_(dst,msg) {
+    const peers = this.bucket_.fetchPeerInfo();
+    //console.log('sendMessage_ peers=<', peers, '>');
+    const dstPeer = peers[dst];
+    //console.log('sendMessage_ dstPeer=<', dstPeer, '>');
+    const dstHost = dstPeer.host || dstPeer.address;
+    //console.log('sendMessage_ dstHost=<', dstHost, '>');
+    const dstPort = dstPeer.port;
+    //console.log('sendMessage_ dstPort=<', dstPort, '>');
+    const msgSign = this.crypto_.sign(msg);
+    //console.log('sendMessage_ msgSign=<', msgSign, '>');
+    const msgBuff = Buffer.from(JSON.stringify(msgSign));
+    this.client.send(msgBuff,dstPort, dstHost, (err) => {
+      //console.log('sendMessage_ err=<',err,'>');
+    });
+  }
+
   
   sendCtrlMsg(msg,address) {
     //console.log('sendCtrlMsg address=<',address,'>');

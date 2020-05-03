@@ -2,6 +2,7 @@
 const base32 = require("base32.js");
 const bitwise = require("bitwise");
 const bigInt = require("big-integer");
+const iConstBucketMax = 4;
 
 class PeerBucket {
   constructor(crypto) {
@@ -37,8 +38,7 @@ class PeerBucket {
     }
     this.fullBuckets_[distanceIndex][peer].address = rinfo.address;
     this.fullBuckets_[distanceIndex][peer].port = rinfo.port;
-    console.log('PeerBucket::addPeer this.fullBuckets_=<',this.fullBuckets_,'>');
-    
+    //console.log('PeerBucket::addPeer this.fullBuckets_=<',this.fullBuckets_,'>');
     this.peersFlat_[peer] = rinfo;
   }
   fetchPeerInfo() {
@@ -64,25 +64,26 @@ class PeerBucket {
     if(this.fullBuckets_[distanceIndex] && this.fullBuckets_[distanceIndex][peer]) {
       this.fullBuckets_[distanceIndex][peer].ttr = ttr;
     }
-    console.log('PeerBucket::updatePeer this.fullBuckets_=<',this.fullBuckets_,'>');      
+    //console.log('PeerBucket::updatePeer this.fullBuckets_=<',this.fullBuckets_,'>');      
   }
 
   removePeer(peer) {
-    console.log('PeerBucket::removePeer peer=<',peer,'>');
+    //console.log('PeerBucket::removePeer peer=<',peer,'>');
     for(const bucketIndex in this.trapBuckets_) {
       const bucket = this.trapBuckets_[bucketIndex];
       if(bucket[peer]) {
         delete this.trapBuckets_[bucketIndex][peer];
       }
     }
-    console.log('PeerBucket::removePeer this.trapBuckets_=<',this.trapBuckets_,'>');
+    //console.log('PeerBucket::removePeer this.trapBuckets_=<',this.trapBuckets_,'>');
     for(const bucketIndex in this.fullBuckets_) {
       const bucket = this.fullBuckets_[bucketIndex];
       if(bucket[peer]) {
         delete this.fullBuckets_[bucketIndex][peer];
       }
     }
-    console.log('PeerBucket::removePeer this.fullBuckets_=<',this.fullBuckets_,'>');
+    //console.log('PeerBucket::removePeer this.fullBuckets_=<',this.fullBuckets_,'>');
+    delete this.peersFlat_[peer];
   }
 
   calcDistance_(address,peer) {
