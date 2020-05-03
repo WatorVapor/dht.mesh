@@ -18,21 +18,20 @@ class PeerNetWork {
     this.bucket_ = new PeerBucket(this.crypto_);
     this.route_ = new PeerRoute(this.crypto_,this.bucket_);
 
-    this.serverCtrl = dgram.createSocket('udp6');
-    //this.client = dgram.createSocket("udp6");
-    this.client = this.serverCtrl;
+    this.sockCtrl = dgram.createSocket('udp6');
+    this.client = this.sockCtrl;
     let self = this;
-    this.serverCtrl.on('listening', () => {
+    this.sockCtrl.on('listening', () => {
       self.onListenCtrlServer();
       if(typeof self.cb_ === 'function') {
         self.cb_();
       }
     });
-    this.serverCtrl.on('message', (msg, rinfo) => {
+    this.sockCtrl.on('message', (msg, rinfo) => {
       self.onMessageCtrlServer__(msg, rinfo)
     });
     try {
-      this.serverCtrl.on('error', (err) => {
+      this.sockCtrl.on('error', (err) => {
         //throw err;
         //console.log('PeerNetWork::constructor err=<',err,'>');
         //console.log('PeerNetWork::constructor typeof self.cb_=<',typeof self.cb_,'>');
@@ -40,14 +39,13 @@ class PeerNetWork {
           self.cb_(err);
         }
       });
-      this.serverCtrl.bind(config.listen.port,(err)=> {
+      this.sockCtrl.bind(config.listen.port,(err)=> {
         const ok = true;
         console.log('PeerNetWork::constructor bind ok=<',ok,'>');
       });
     } catch( err ) {
       console.log('PeerNetWork::constructor err=<',err,'>');
     }
-    this.replays_ = {};
   }
   host() {
     return this.machine_.readMachienIp();
@@ -262,7 +260,7 @@ class PeerNetWork {
   }
 
   onListenCtrlServer(evt) {
-    const address = this.serverCtrl.address();
+    const address = this.sockCtrl.address();
     console.log('onListenCtrlServer address=<', address, '>');
     const self = this;
     setTimeout(()=>{
