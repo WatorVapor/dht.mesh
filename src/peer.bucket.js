@@ -12,8 +12,11 @@ class PeerBucket {
     this.trapBuckets_ = {};
     this.fullBuckets_ = {};
     this.peersFlat_ = {};
+    this.peersEntrance_ = {};
   }
   addPeer(peer,rinfo,trap) {
+    this.peersEntrance_[peer] = rinfo;
+    
     //console.log('PeerBucket::addPeer peer=<',peer,'>');
     //console.log('PeerBucket::addPeer rinfo=<',rinfo,'>');
     //console.log('PeerBucket::addPeer trap=<',trap,'>');
@@ -43,6 +46,9 @@ class PeerBucket {
   }
   fetchPeerInfo() {
     return this.peersFlat_;
+  }
+  fetchPeerEntrance() {
+    return this.peersEntrance_;
   }
 
   updatePeer(peer,ttr) {
@@ -84,6 +90,7 @@ class PeerBucket {
     }
     //console.log('PeerBucket::removePeer this.fullBuckets_=<',this.fullBuckets_,'>');
     delete this.peersFlat_[peer];
+    delete this.peersEntrance_[peer];
   }
 
   calcDistance_(address,peer) {

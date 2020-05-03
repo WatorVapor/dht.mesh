@@ -59,6 +59,9 @@ class PeerNetWork {
     const relayPeer = this.route_.calcContent(resource.address);
     console.log('PeerNetWork::publish relayPeer=<',relayPeer,'>');
     console.log('PeerNetWork::publish this.crypto_.id=<',this.crypto_.id,'>');
+    if(relayPeer.min === this.crypto_.id || relayPeer.max === this.crypto_.id) {
+      this.onRemotePublish(resource);
+    }
     if(relayPeer.min && relayPeer.min !== this.crypto_.id) {
       this.relayMsgTo_(relayPeer.min,resource);
     }
@@ -134,7 +137,7 @@ class PeerNetWork {
   onNodeEntry__(peerid, rinfo) {
     //console.log('onNodeEntry__ peerid=<',peerid,'>');
     console.log('onNodeEntry__ rinfo=<',rinfo,'>');
-    const remotePeers = this.bucket_.fetchPeerInfo();
+    const remotePeers = this.bucket_.fetchPeerEntrance();
     //console.log('onNodeEntry__ remotePeers=<', remotePeers, '>');
     const msg = {
       welcome: remotePeers

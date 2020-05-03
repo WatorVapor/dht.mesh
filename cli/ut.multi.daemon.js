@@ -50,10 +50,10 @@ const tryNewDHT = async () => {
     });
     try {
       const dhtP = await promise;
-      console.log(':: dhtP=<',dhtP,'>');
+      //console.log(':: dhtP=<',dhtP,'>');
       break;
     } catch( err ) {
-      console.log(':: err=<',err,'>');
+      //console.log(':: err=<',err,'>');
     }
   }
 }
