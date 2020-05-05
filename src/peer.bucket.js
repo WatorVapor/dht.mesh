@@ -52,9 +52,6 @@ class PeerBucket {
   }
 
   updatePeer(peer,ttr) {
-    if(peer === this.id_) {
-      return;
-    }
     //console.log('PeerBucket::updatePeer peer=<',peer,'>');
     //console.log('PeerBucket::updatePeer ttr=<',ttr,'>');
     //console.log('PeerBucket::updatePeer this.id_=<',this.id_,'>');

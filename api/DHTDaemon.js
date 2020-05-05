@@ -71,7 +71,7 @@ class DHTDaemon {
   };
 
   async onPublishData_(jMsg) {
-    console.log('onPublishData_::jMsg=<',jMsg,'>');
+    //console.log('DHTDaemon::onPublishData_::jMsg=<',jMsg,'>');
     const meshResp = {
       cb:jMsg.cb,
       publish:jMsg.publish
@@ -86,7 +86,7 @@ class DHTDaemon {
   };
 
   async onDeliveryData_(jMsg) {
-    console.log('onDeliveryData_::jMsg=<',jMsg,'>');
+    //console.log('DHTDaemon::onDeliveryData_::jMsg=<',jMsg,'>');
     const meshResp = {
       cb:jMsg.cb,
       delivery:jMsg.delivery

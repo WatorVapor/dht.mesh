@@ -26,10 +26,10 @@ class DHT {
     return this.info_;
   }
   async publish(payload,cb) {
-    console.log('DHT::publish payload=<',payload,'>');
-    console.log('DHT::publish cb=<',cb,'>');
+    //console.log('DHT::publish payload=<',payload,'>');
+    //console.log('DHT::publish cb=<',cb,'>');
     const address = this.crypto_.calcResourceAddress(payload);
-    console.log('DHT::publish address=<',address,'>');
+    //console.log('DHT::publish address=<',address,'>');
     const publishDataMsg = {
       address:address,
       cb:cb,
@@ -43,8 +43,8 @@ class DHT {
     return {address:address,footprint:this.info_.id};
   }
   async delivery(peer,payload) {
-    console.log('DHT::delivery peer=<',peer,'>');
-    console.log('DHT::delivery payload=<',payload,'>');
+    //console.log('DHT::delivery peer=<',peer,'>');
+    //console.log('DHT::delivery payload=<',payload,'>');
     const deliveryDataMsg = {
       address:peer,
       delivery:{
