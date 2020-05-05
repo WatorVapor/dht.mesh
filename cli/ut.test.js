@@ -13,5 +13,14 @@ const meshMsg = ()=> {
   dht.publish('https://en.wikipedia.org/wiki/Distributed_hash_table',(info) => {
     console.log('dht.publish:: info=<',info,'>');
   });
+  dht.publish('https://en.wikipedia.org/wiki/Peer-to-peer',(info) => {
+    console.log('dht.publish:: info=<',info,'>');
+  });
+  dht.publish('https://en.wikipedia.org/wiki/Social_network',(info) => {
+    console.log('dht.publish:: info=<',info,'>');
+  });
+  dht.publish('https://en.wikipedia.org/wiki/Axiom',(info) => {
+    console.log('dht.publish:: info=<',info,'>');
+  });
 };
 setTimeout(meshMsg,1000);

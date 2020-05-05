@@ -2,7 +2,7 @@
 const base32 = require("base32.js");
 const bitwise = require("bitwise");
 const bigInt = require("big-integer");
-const iConstBucketMax = 4;
+const iConstBucketMax = 16;
 
 class PeerBucket {
   constructor(crypto) {
@@ -15,6 +15,10 @@ class PeerBucket {
     this.peersEntrance_ = {};
   }
   addPeer(peer,rinfo,trap) {
+    const totalInBacket = Object.keys(this.peersFlat_).length;
+    if(totalInBacket >= iConstBucketMax) {
+      return;
+    }
     this.peersEntrance_[peer] = rinfo;
     
     //console.log('PeerBucket::addPeer peer=<',peer,'>');
