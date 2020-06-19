@@ -18,6 +18,13 @@ class DHTDaemon {
       await self.onData_(message);
     });
     this.publisher_ = redis.createClient(redisOption);
+    
+    this.dht_.onRemoteSpreed = (msg)=> {
+      self.onRemoteSpread_(msg);
+    }
+    this.dht_.onRemoteDelivery = (msg)=> {
+      self.onRemoteDelivery_(msg);
+    }
   }
   
   onConnection_(connection) {
@@ -41,10 +48,12 @@ class DHTDaemon {
       if(jMsg) {
         if(jMsg.peerInfo) {
           await this.onPeerInfo_(jMsg);
-        } else if(jMsg.publish) {
-          await this.onPublishData_(jMsg);
+        } else if(jMsg.spread) {
+          await this.onSpreadData_(jMsg);
         } else if(jMsg.delivery) {
           await this.onDeliveryData_(jMsg);
+        } else if(jMsg.subscribe) {
+          this.onSubscribeData_(jMsg);
         } else {
           console.log('DHTDaemon::onData_::jMsg=<',jMsg,'>');
         }
@@ -70,18 +79,18 @@ class DHTDaemon {
     }
   };
 
-  async onPublishData_(jMsg) {
-    //console.log('DHTDaemon::onPublishData_::jMsg=<',jMsg,'>');
+  async onSpreadData_(jMsg) {
+    //console.log('DHTDaemon::onSpreadData_::jMsg=<',jMsg,'>');
     const meshResp = {
       cb:jMsg.cb,
-      publish:jMsg.publish
+      spread:jMsg.spread
     };
-    this.dht_.publish(jMsg.publish,jMsg.cb);
+    this.dht_.spread(jMsg.spread,jMsg.cb);
     const RespBuff = Buffer.from(JSON.stringify(meshResp),'utf-8');
     try {
       this.publisher_.publish(jMsg.channel,RespBuff);
     } catch(e) {
-      console.log('DHTDaemon::onPublishData_::::e=<',e,'>');
+      console.log('DHTDaemon::onSpreadData_::::e=<',e,'>');
     }
   };
 
@@ -99,6 +108,31 @@ class DHTDaemon {
       console.log('DHTDaemon::onDeliveryData_::::e=<',e,'>');
     }
   };
+  onSubscribeData_(jMsg) {
+    //console.log('DHTDaemon::onSubscribeData_::jMsg=<',jMsg,'>');
+    this.remoteSubChannel_ = jMsg.channel;
+  }
+
+  onRemoteSpread_(spreadMsg) {
+    //console.log('DHTDaemon::onRemoteSpread_ spreadMsg=<',spreadMsg,'>');
+    if(this.remoteSubChannel_) {
+      const meshResp = {
+        remoteSpread:spreadMsg
+      };
+      this.publisher_.publish(this.remoteSubChannel_,JSON.stringify(meshResp));
+    }
+  }
+  onRemoteDelivery_(deliveryMsg) {
+    //console.log('DHTDaemon::onRemoteDelivery_ deliveryMsg=<',deliveryMsg,'>');
+    if(this.remoteSubChannel_) {
+      const meshResp = {
+        remoteDelivery:deliveryMsg
+      };
+      this.publisher_.publish(this.remoteSubChannel_,JSON.stringify(meshResp));
+    }
+  }
+
+
 };
 
 module.exports = DHTDaemon;

@@ -18,28 +18,28 @@ class DHT {
       }
     };
     this.peer_.onPeerJoint = this.onPeerJoint_.bind(this);
-    this.peer_.onRemotePublish = this.onRemotePublish_.bind(this);
+    this.peer_.onRemoteSpread = this.onRemoteSpread_.bind(this);
     this.peer_.onRemoteDelivery = this.onRemoteDelivery_.bind(this);
     this.getInvokers_ = {};
   }
   peerInfo() {
     return this.info_;
   }
-  async publish(payload,cb) {
-    //console.log('DHT::publish payload=<',payload,'>');
-    //console.log('DHT::publish cb=<',cb,'>');
+  async spread(payload,cb) {
+    //console.log('DHT::spread payload=<',payload,'>');
+    //console.log('DHT::spread cb=<',cb,'>');
     const address = this.crypto_.calcResourceAddress(payload);
-    //console.log('DHT::publish address=<',address,'>');
-    const publishDataMsg = {
+    //console.log('DHT::spread address=<',address,'>');
+    const spreadDataMsg = {
       address:address,
       cb:cb,
       from:this.info_.id,
-      publish:{
+      spread:{
         footprint:[this.info_.id],
         payload:payload
       }
     };
-    this.peer_.publish(publishDataMsg);
+    this.peer_.spread(spreadDataMsg);
     return {address:address,footprint:this.info_.id};
   }
   async delivery(peer,payload) {
@@ -61,13 +61,15 @@ class DHT {
   onPeerJoint_(peer) {
     console.log('DHT::onPeerJoint_ peer=<',peer,'>');
   }
-  async onRemotePublish_(publishMsg) {
-    console.log('DHT::onRemotePublish_ this.crypto_.id=<',this.crypto_.id,'>');
-    console.log('DHT::onRemotePublish_ publishMsg=<',publishMsg,'>');
+  async onRemoteSpread_(spreadMsg) {
+    //console.log('DHT::onRemoteSpread_ this.crypto_.id=<',this.crypto_.id,'>');
+    //console.log('DHT::onRemoteSpread_ spreadMsg=<',spreadMsg,'>');
+    this.onRemoteSpreed(spreadMsg);
   }
   async onRemoteDelivery_(deliveryMsg) {
-    console.log('DHT::onRemoteDelivery_ this.crypto_.id=<',this.crypto_.id,'>');
-    console.log('DHT::onRemoteDelivery_ deliveryMsg=<',deliveryMsg,'>');
+    //console.log('DHT::onRemoteDelivery_ this.crypto_.id=<',this.crypto_.id,'>');
+    //console.log('DHT::onRemoteDelivery_ deliveryMsg=<',deliveryMsg,'>');
+    this.onRemoteDelivery(deliveryMsg);
   }
 }
 module.exports = DHT;

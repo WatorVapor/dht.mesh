@@ -29,6 +29,7 @@ class DHTClient {
     });
     this.publisher_ = redis.createClient(redisOption);   
     this.cb_ = {};
+    this.cbSub_ = {};
   }
   peerInfo(cb) {
     console.log('DHTClient::peerInfo');
@@ -36,10 +37,10 @@ class DHTClient {
     const cbTag = this.writeData_(msg);
     this.cb_[cbTag] = cb;
   }
-  publish(msg,cb) {
-    //console.log('DHTClient::publish msg=<',msg,'>');
+  spread(msg,cb) {
+    //console.log('DHTClient::spread msg=<',msg,'>');
     const msgMesh = {
-      publish:msg
+      spread:msg
     };
     const cbTag = this.writeData_(msgMesh);
     this.cb_[cbTag] = cb;
@@ -50,6 +51,14 @@ class DHTClient {
       delivery:msg,
       peer:peer
     };
+    this.writeData_(msgMesh);
+  }
+  subscribe(cb) {
+    const msgMesh = {
+      subscribe:true
+    };
+    const cbTag = this.writeData_(msgMesh);
+    this.cbSub_[cbTag] = cb;
   }
 
   
@@ -66,6 +75,10 @@ class DHTClient {
           this.onPeerInfo_(jMsg);
         } else if(jMsg.mesh) {
           this.onMeshMsg_(jMsg);
+        } else if(jMsg.remoteSpread) {
+          this.onRemoteSpreadMsg_(jMsg.remoteSpread);
+        } else if(jMsg.remoteDelivery) {
+          this.onRemoteDeliveryMsg_(jMsg.remoteDelivery);
         } else {
           console.log('DHTClient::onMsg_ jMsg=<',jMsg,'>');
         }
@@ -119,7 +132,26 @@ class DHTClient {
       console.log('DHTClient::onMeshMsg_ this.cb_=<',this.cb_,'>');
     }
   }
-
+  
+  
+  onRemoteSpreadMsg_(jMsg) {
+    //console.log('DHTClient::onRemoteSpreadMsg_ jMsg=<',jMsg,'>');
+    //console.log('DHTClient::onRemoteSpreadMsg_ this.cbSub_=<',this.cbSub_,'>');
+    for(const cbIndex in this.cbSub_) {
+      //console.log('DHTClient::onRemoteSpreadMsg_ cbIndex=<',cbIndex,'>');
+      const cb = this.cbSub_[cbIndex];
+      cb(jMsg.spread,jMsg.from);
+    }
+  }
+  onRemoteDeliveryMsg_(jMsg) {
+    //console.log('DHTClient::onRemoteDeliveryMsg_ jMsg=<',jMsg,'>');
+    for(const cbIndex in this.cbSub_) {
+      console.log('DHTClient::onRemoteSpreadMsg_ cbIndex=<',cbIndex,'>');
+      const cb = this.cbSub_[cbIndex];
+      cb(jMsg.delivery,jMsg.from);
+    }
+  }
+  
 }
 
 module.exports = DHTClient;

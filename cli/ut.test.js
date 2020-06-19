@@ -7,6 +7,7 @@ dht.peerInfo((peerInfo)=>{
   console.log('dht.peerInfo:: peerInfo=<',peerInfo,'>');
 });
 const meshMsg = ()=> {
+  /*
   dht.publish('https://en.wikipedia.org/wiki/Kademlia',(info) => {
     console.log('dht.publish:: info=<',info,'>');
   });
@@ -19,8 +20,16 @@ const meshMsg = ()=> {
   dht.publish('https://en.wikipedia.org/wiki/Social_network',(info) => {
     console.log('dht.publish:: info=<',info,'>');
   });
-  dht.publish('https://en.wikipedia.org/wiki/Axiom',(info) => {
-    console.log('dht.publish:: info=<',info,'>');
+  */
+  
+  dht.spread('https://en.wikipedia.org/wiki/Axiom',(info) => {
+    console.log('dht.spread:: info=<',info,'>');
   });
 };
+dht.subscribe((remoteMsg,from) => {
+  console.log('dht.subscribe:: remoteMsg=<',remoteMsg,'>');
+  console.log('dht.subscribe:: from=<',from,'>');
+});
+
 setTimeout(meshMsg,1000);
+

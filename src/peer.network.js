@@ -54,15 +54,15 @@ class PeerNetWork {
     return this.config.listen.port;
   }
 
-  publish(resource) {
-    //console.log('PeerNetWork::publish resource=<',resource,'>');
+  spread(resource) {
+    //console.log('PeerNetWork::spread resource=<',resource,'>');
     const relayPeer = this.route_.calcContent(resource.address);
-    console.log('PeerNetWork::publish relayPeer=<',relayPeer,'>');
-    console.log('PeerNetWork::publish this.crypto_.id=<',this.crypto_.id,'>');
+    console.log('PeerNetWork::spread relayPeer=<',relayPeer,'>');
+    console.log('PeerNetWork::spread this.crypto_.id=<',this.crypto_.id,'>');
     const isMine = relayPeer.min === this.crypto_.id || relayPeer.max === this.crypto_.id;
-    console.log('PeerNetWork::publish isMine=<',isMine,'>');
+    console.log('PeerNetWork::spread isMine=<',isMine,'>');
     if(isMine) {
-      this.onRemotePublish(resource);
+      this.onRemoteSpread(resource);
     }
     if(relayPeer.min && relayPeer.min !== this.crypto_.id) {
       this.relayMsgTo_(relayPeer.min,resource);
@@ -125,9 +125,9 @@ class PeerNetWork {
     } else if (payload.pong) {
       //console.log('onMessageCtrlServer__ payload=<',payload,'>');
       this.onPeerPong__(rPeerId, payload.pong);
-    } else if (payload.publish) {
+    } else if (payload.spread) {
         //console.log('onMessageCtrlServer__ payload=<',payload,'>');
-        this.onRemotePublish__(rPeerId, payload);
+        this.onRemoteSpread__(rPeerId, payload);
     } else if (payload.delivery) {
         //console.log('onMessageCtrlServer__ payload=<',payload,'>');
         this.onRemoteDelivery__(rPeerId, payload);
@@ -290,7 +290,7 @@ class PeerNetWork {
     //console.log('PeerNetWork::relayMsgTo_ dst=<', dst, '>');
     //console.log('PeerNetWork::relayMsgTo_ msg=<', msg, '>');
     if(dst) {
-      const footprint = msg.publish.footprint || msg.delivery.footprint ;
+      const footprint = msg.spread.footprint || msg.delivery.footprint ;
       //console.log('PeerNetWork::relayMsgTo_ footprint=<', footprint, '>');
       const circle = footprint.includes(dst);
       if(!circle) {
@@ -302,20 +302,20 @@ class PeerNetWork {
   }
 
   
-  onRemotePublish__(peerFrom,remoteMsg) {
-    //console.log('PeerNetWork::onRemotePublish__ peerFrom=<', peerFrom, '>');
-    //console.log('PeerNetWork::onRemotePublish__ remoteMsg=<', remoteMsg, '>');
+  onRemoteSpread__(peerFrom,remoteMsg) {
+    //console.log('PeerNetWork::onRemoteSpread__ peerFrom=<', peerFrom, '>');
+    //console.log('PeerNetWork::onRemoteSpread__ remoteMsg=<', remoteMsg, '>');
     const address = remoteMsg.address;
     const relayPeer = this.route_.calcContent(address);
-    //console.log('PeerNetWork::onRemotePublish__ relayPeer=<',relayPeer,'>');
-    //console.log('PeerNetWork::onRemotePublish__ this.crypto_.id=<',this.crypto_.id,'>');
-    if(remoteMsg.publish && remoteMsg.publish.footprint && remoteMsg.publish.footprint.length > 0 ) {
-      remoteMsg.publish.footprint.push(this.crypto_.id);
+    //console.log('PeerNetWork::onRemoteSpread__ relayPeer=<',relayPeer,'>');
+    //console.log('PeerNetWork::onRemoteSpread__ this.crypto_.id=<',this.crypto_.id,'>');
+    if(remoteMsg.spread && remoteMsg.spread.footprint && remoteMsg.spread.footprint.length > 0 ) {
+      remoteMsg.spread.footprint.push(this.crypto_.id);
     }
     const isMine = relayPeer.min === this.crypto_.id || relayPeer.max === this.crypto_.id;
-    //console.log('PeerNetWork::onRemotePublish__ isMine=<',isMine,'>');
+    //console.log('PeerNetWork::onRemoteSpread__ isMine=<',isMine,'>');
     if(isMine) {
-      this.onRemotePublish(remoteMsg);
+      this.onRemoteSpread(remoteMsg);
     } else if(relayPeer.min !== peerFrom) {
       this.relayMsgTo_(relayPeer.min,remoteMsg);
     } else if(relayPeer.max !== peerFrom) {
