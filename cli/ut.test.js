@@ -7,24 +7,31 @@ dht.peerInfo((peerInfo)=>{
   console.log('dht.peerInfo:: peerInfo=<',peerInfo,'>');
 });
 const meshMsg = ()=> {
-  /*
-  dht.publish('https://en.wikipedia.org/wiki/Kademlia',(info) => {
-    console.log('dht.publish:: info=<',info,'>');
+  
+   
+  dht.spread('https://en.wikipedia.org/wiki/Kademlia',(info) => {
+    console.log('dht.spread:: info=<',info,'>');
   });
-  dht.publish('https://en.wikipedia.org/wiki/Distributed_hash_table',(info) => {
-    console.log('dht.publish:: info=<',info,'>');
+  
+
+  dht.spread('https://en.wikipedia.org/wiki/Distributed_hash_table',(info) => {
+    console.log('dht.spread:: info=<',info,'>');
   });
-  dht.publish('https://en.wikipedia.org/wiki/Peer-to-peer',(info) => {
-    console.log('dht.publish:: info=<',info,'>');
+  
+  dht.spread('https://en.wikipedia.org/wiki/Peer-to-peer',(info) => {
+    console.log('dht.spread:: info=<',info,'>');
   });
-  dht.publish('https://en.wikipedia.org/wiki/Social_network',(info) => {
-    console.log('dht.publish:: info=<',info,'>');
+  
+  dht.spread('https://en.wikipedia.org/wiki/Social_network',(info) => {
+    console.log('dht.spread:: info=<',info,'>');
   });
-  */
+  
   
   dht.spread('https://en.wikipedia.org/wiki/Axiom',(info) => {
     console.log('dht.spread:: info=<',info,'>');
   });
+  
+  
 };
 dht.subscribe((remoteMsg,from) => {
   console.log('dht.subscribe:: remoteMsg=<',remoteMsg,'>');

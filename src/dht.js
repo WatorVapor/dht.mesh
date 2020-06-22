@@ -63,12 +63,12 @@ class DHT {
   }
   async onRemoteSpread_(spreadMsg) {
     //console.log('DHT::onRemoteSpread_ this.crypto_.id=<',this.crypto_.id,'>');
-    //console.log('DHT::onRemoteSpread_ spreadMsg=<',spreadMsg,'>');
+    console.log('DHT::onRemoteSpread_ spreadMsg=<',spreadMsg,'>');
     this.onRemoteSpreed(spreadMsg);
   }
   async onRemoteDelivery_(deliveryMsg) {
     //console.log('DHT::onRemoteDelivery_ this.crypto_.id=<',this.crypto_.id,'>');
-    //console.log('DHT::onRemoteDelivery_ deliveryMsg=<',deliveryMsg,'>');
+    console.log('DHT::onRemoteDelivery_ deliveryMsg=<',deliveryMsg,'>');
     this.onRemoteDelivery(deliveryMsg);
   }
 }

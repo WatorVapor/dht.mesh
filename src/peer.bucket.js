@@ -2,7 +2,7 @@
 const base32 = require("base32.js");
 const bitwise = require("bitwise");
 const bigInt = require("big-integer");
-const iConstBucketMax = 16;
+const iConstBucketMax = 4;
 
 class PeerBucket {
   constructor(crypto) {

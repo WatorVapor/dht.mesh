@@ -18,8 +18,8 @@ class PeerRoute {
   
   
   calcContent(address) {
-    console.log('PeerRoute::calcContent address=<',address,'>');
-    console.log('PeerRoute::calcContent this.id_=<',this.id_,'>');
+    //console.log('PeerRoute::calcContent address=<',address,'>');
+    //console.log('PeerRoute::calcContent this.id_=<',this.id_,'>');
     let distanceMin = bigInt('ffffffffffffffffffffffffffffffffffffffff',16);
     let peerMin = false;
     let distanceMax = bigInt('0000000000000000000000000000000000000000',16);
@@ -39,6 +39,10 @@ class PeerRoute {
           distanceMax = distance;
           peerMax = peerId;
         }
+        //console.log('PeerRoute::calcContent distanceMin=<',distanceMin,'>');
+        //console.log('PeerRoute::calcContent distanceMax=<',distanceMax,'>');
+        //console.log('PeerRoute::calcContent peerMin=<',peerMin,'>');
+        //console.log('PeerRoute::calcContent peerMax=<',peerMax,'>');
       }
     }
     //console.log('PeerRoute::calcContent distanceMin=<',distanceMin,'>');
