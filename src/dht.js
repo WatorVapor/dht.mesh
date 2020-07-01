@@ -25,12 +25,10 @@ class DHT {
   peerInfo() {
     return this.info_;
   }
-  async spread(payload,cb) {
+  async spread(address,payload,cb) {
     //console.log('DHT::spread payload=<',payload,'>');
     //console.log('DHT::spread cb=<',cb,'>');
-    const address = this.crypto_.calcResourceAddress(payload);
-    //console.log('DHT::spread address=<',address,'>');
-    const spreadDataMsg = {
+   const spreadDataMsg = {
       address:address,
       cb:cb,
       from:this.info_.id,

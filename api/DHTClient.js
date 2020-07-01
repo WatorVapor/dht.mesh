@@ -37,14 +37,26 @@ class DHTClient {
     const cbTag = this.writeData_(msg);
     this.cb_[cbTag] = cb;
   }
-  spread(msg,cb) {
+  spread(address,msg,cb) {
     //console.log('DHTClient::spread msg=<',msg,'>');
     const msgMesh = {
+      address:address,
       spread:msg
     };
     const cbTag = this.writeData_(msgMesh);
     this.cb_[cbTag] = cb;
   }
+  spreadContent(msg,cb) {
+    //console.log('DHTClient::spread msg=<',msg,'>');
+    const address = this.calcAddress(msg);
+    const msgMesh = {
+      address:address,
+      spread:msg
+    };
+    const cbTag = this.writeData_(msgMesh);
+    this.cb_[cbTag] = cb;
+  }
+
   delivery(peer,msg) {
     //console.log('DHTClient::delivery msg=<',msg,'>');
     const msgMesh = {
@@ -110,6 +122,12 @@ class DHTClient {
   }
   getAddress(resourceKey) {
     const resourceRipemd = CryptoJS.RIPEMD160(resourceKey).toString(CryptoJS.enc.Hex);
+    const resourceBuffer = Buffer.from(resourceRipemd,'hex');
+    return base32.encode(resourceBuffer,bs32Option);
+    return 
+  }
+  calcAddress(resource) {
+    const resourceRipemd = CryptoJS.RIPEMD160(resource).toString(CryptoJS.enc.Hex);
     const resourceBuffer = Buffer.from(resourceRipemd,'hex');
     return base32.encode(resourceBuffer,bs32Option);
     return 

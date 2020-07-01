@@ -85,7 +85,7 @@ class DHTDaemon {
       cb:jMsg.cb,
       spread:jMsg.spread
     };
-    this.dht_.spread(jMsg.spread,jMsg.cb);
+    this.dht_.spread(jMsg.address,jMsg.spread,jMsg.cb);
     const RespBuff = Buffer.from(JSON.stringify(meshResp),'utf-8');
     try {
       this.publisher_.publish(jMsg.channel,RespBuff);
