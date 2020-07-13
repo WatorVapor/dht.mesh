@@ -153,7 +153,7 @@ class DHTClient {
   
   
   onRemoteSpreadMsg_(jMsg) {
-    console.log('DHTClient::onRemoteSpreadMsg_ jMsg=<',jMsg,'>');
+    //console.log('DHTClient::onRemoteSpreadMsg_ jMsg=<',jMsg,'>');
     //console.log('DHTClient::onRemoteSpreadMsg_ this.cbSub_=<',this.cbSub_,'>');
     for(const cbIndex in this.cbSub_) {
       //console.log('DHTClient::onRemoteSpreadMsg_ cbIndex=<',cbIndex,'>');
@@ -164,7 +164,7 @@ class DHTClient {
   onRemoteDeliveryMsg_(jMsg) {
     //console.log('DHTClient::onRemoteDeliveryMsg_ jMsg=<',jMsg,'>');
     for(const cbIndex in this.cbSub_) {
-      console.log('DHTClient::onRemoteSpreadMsg_ cbIndex=<',cbIndex,'>');
+      //console.log('DHTClient::onRemoteSpreadMsg_ cbIndex=<',cbIndex,'>');
       const cb = this.cbSub_[cbIndex];
       cb(jMsg);
     }

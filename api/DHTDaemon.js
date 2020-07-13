@@ -7,6 +7,7 @@ const DefaultDaemonListenChannel = 'dht.mesh.api.daemon.listen';
 class DHTDaemon {
   constructor(dht,apiChannel) {
     this.dht_ = dht;
+    this.remoteSubChannels_ = [];
     this.subscriber_ = redis.createClient(redisOption);
     if(apiChannel) {
       this.subscriber_.subscribe(apiChannel);
@@ -110,25 +111,25 @@ class DHTDaemon {
   };
   onSubscribeData_(jMsg) {
     //console.log('DHTDaemon::onSubscribeData_::jMsg=<',jMsg,'>');
-    this.remoteSubChannel_ = jMsg.channel;
+    this.remoteSubChannels_.push(jMsg.channel);
   }
 
   onRemoteSpread_(spreadMsg) {
     //console.log('DHTDaemon::onRemoteSpread_ spreadMsg=<',spreadMsg,'>');
-    if(this.remoteSubChannel_) {
+    for(const remoteSub of this.remoteSubChannels_) {
       const meshResp = {
         remoteSpread:spreadMsg
       };
-      this.publisher_.publish(this.remoteSubChannel_,JSON.stringify(meshResp));
+      this.publisher_.publish(remoteSub,JSON.stringify(meshResp));
     }
   }
   onRemoteDelivery_(deliveryMsg) {
     //console.log('DHTDaemon::onRemoteDelivery_ deliveryMsg=<',deliveryMsg,'>');
-    if(this.remoteSubChannel_) {
+    for(const remoteSub of this.remoteSubChannels_) {
       const meshResp = {
         remoteDelivery:deliveryMsg
       };
-      this.publisher_.publish(this.remoteSubChannel_,JSON.stringify(meshResp));
+      this.publisher_.publish(remoteSub,JSON.stringify(meshResp));
     }
   }
 

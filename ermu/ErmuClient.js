@@ -8,32 +8,27 @@ const daemonUTListenChannel = 'dht.mesh.api.daemon.listen.ut';
 
 class ErmuClient {
   constructor(serverChannel) {
-    this.dht = new DHTClient(daemonUTListenChannel);
-    this.dht.peerInfo( (peerInfo)=> {
+    this.dht_ = new DHTClient(daemonUTListenChannel);
+    this.dht_.peerInfo( (peerInfo)=> {
       console.log('ErmuClient::.constructor:: peerInfo=<',peerInfo,'>');
-    });
-    const self = this;
-    this.dht.subscribe( ( remoteMsg ) => {
-      self.onRemoteMsg(remoteMsg);
     });
   }
   append(keyword,msg,rank) {
-    console.log('ErmuClient::append:: keyword=<',keyword,'>');
-    console.log('ErmuClient::append:: msg=<',msg,'>');
-    console.log('ErmuClient::append:: rank=<',rank,'>');
+    //console.log('ErmuClient::append:: keyword=<',keyword,'>');
+    //console.log('ErmuClient::append:: msg=<',msg,'>');
+    //console.log('ErmuClient::append:: rank=<',rank,'>');
     const address = this.getAddress(keyword);
-    console.log('ErmuClient::append:: address=<',address,'>');
+    //console.log('ErmuClient::append:: address=<',address,'>');
     const msgObj = {
-      word:keyword,
-      msg:msg,
-      rank:rank
+      ermu: {
+        word:keyword,
+        msg:msg,
+        rank:rank
+      }
     }
-    this.dht.spread(address,msgObj,()=>{
-      
+    this.dht_.spread(address,msgObj,(infoSpread)=>{
+      console.log('ErmuClient::append:: infoSpread=<',infoSpread,'>');
     });
-  }
-  onRemoteMsg(msg) {
-    console.log('ErmuClient::onRemoteMsg:: msg=<',msg,'>');
   }
 
   getAddress(content) {
