@@ -13,8 +13,8 @@ class ErmuClient {
       console.log('ErmuClient::.constructor:: peerInfo=<',peerInfo,'>');
     });
     const self = this;
-    this.dht.subscribe( ( remoteMsg,from ) => {
-      self.onRemoteMsg(remoteMsg,from);
+    this.dht.subscribe( ( remoteMsg ) => {
+      self.onRemoteMsg(remoteMsg);
     });
   }
   append(keyword,msg,rank) {
@@ -23,15 +23,22 @@ class ErmuClient {
     console.log('ErmuClient::append:: rank=<',rank,'>');
     const address = this.getAddress(keyword);
     console.log('ErmuClient::append:: address=<',address,'>');
+    const msgObj = {
+      word:keyword,
+      msg:msg,
+      rank:rank
+    }
+    this.dht.spread(address,msgObj,()=>{
+      
+    });
   }
-  onRemoteMsg() {
-    console.log('ErmuClient::onRemoteMsg:: remoteMsg=<',remoteMsg,'>');
-    console.log('ErmuClient::onRemoteMsg:: from=<',from,'>');
+  onRemoteMsg(msg) {
+    console.log('ErmuClient::onRemoteMsg:: msg=<',msg,'>');
   }
 
   getAddress(content) {
     const contentRipemd = CryptoJS.RIPEMD160(content).toString(CryptoJS.enc.Hex);
-    console.log('ErmuClient::onRemoteMsg:: contentRipemd=<',contentRipemd,'>');
+    console.log('ErmuClient::getAddress:: contentRipemd=<',contentRipemd,'>');
     const contentBuffer = Buffer.from(contentRipemd,'hex');
     return base32.encode(contentBuffer,bs32Option);
   }
