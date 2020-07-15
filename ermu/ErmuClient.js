@@ -29,10 +29,24 @@ class ErmuClient {
       console.log('ErmuClient::append:: infoSpread=<',infoSpread,'>');
     });
   }
+  fetch(keyword) {
+    //console.log('ErmuClient::append:: keyword=<',keyword,'>');
+    const address = this.getAddress(keyword);
+    //console.log('ErmuClient::append:: address=<',address,'>');
+    const msgObj = {
+      ermu: {
+        fetch:'>'
+      }
+    }
+    this.dht_.spread(address,msgObj,(infoSpread)=>{
+      console.log('ErmuClient::append:: infoSpread=<',infoSpread,'>');
+    });
+  }
 
   getAddress(content) {
-    const contentRipemd = CryptoJS.RIPEMD160(content).toString(CryptoJS.enc.Hex);
-    console.log('ErmuClient::getAddress:: contentRipemd=<',contentRipemd,'>');
+    const contentsSha3 = CryptoJS.SHA3(content).toString(CryptoJS.enc.Hex);
+    const contentRipemd = CryptoJS.RIPEMD160(contentsSha3).toString(CryptoJS.enc.Hex);
+    //console.log('ErmuClient::getAddress:: contentRipemd=<',contentRipemd,'>');
     const contentBuffer = Buffer.from(contentRipemd,'hex');
     return base32.encode(contentBuffer,bs32Option);
   }
