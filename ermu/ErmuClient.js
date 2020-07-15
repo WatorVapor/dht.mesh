@@ -4,11 +4,10 @@ const CryptoJS = require('crypto-js');
 const base32 = require("base32.js");
 
 const bs32Option = { type: "crockford", lc: true };
-const daemonUTListenChannel = 'dht.mesh.api.daemon.listen.ut';
 
 class ErmuClient {
-  constructor(serverChannel) {
-    this.dht_ = new DHTClient(daemonUTListenChannel);
+  constructor() {
+    this.dht_ = new DHTClient();
     this.dht_.peerInfo( (peerInfo)=> {
       console.log('ErmuClient::.constructor:: peerInfo=<',peerInfo,'>');
     });
@@ -22,7 +21,7 @@ class ErmuClient {
     const msgObj = {
       ermu: {
         word:keyword,
-        msg:msg,
+        store:msg,
         rank:rank
       }
     }

@@ -57,10 +57,10 @@ class PeerNetWork {
   spread(resource) {
     //console.log('PeerNetWork::spread resource=<',resource,'>');
     const relayPeer = this.route_.calcContent(resource.address);
-    console.log('PeerNetWork::spread relayPeer=<',relayPeer,'>');
-    console.log('PeerNetWork::spread this.crypto_.id=<',this.crypto_.id,'>');
+    //console.log('PeerNetWork::spread relayPeer=<',relayPeer,'>');
+    //console.log('PeerNetWork::spread this.crypto_.id=<',this.crypto_.id,'>');
     const isMine = relayPeer.min === this.crypto_.id || relayPeer.max === this.crypto_.id;
-    console.log('PeerNetWork::spread isMine=<',isMine,'>');
+    //console.log('PeerNetWork::spread isMine=<',isMine,'>');
     if(isMine) {
       this.onRemoteSpread(resource);
     }
