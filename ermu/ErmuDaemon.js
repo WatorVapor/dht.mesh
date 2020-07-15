@@ -3,6 +3,7 @@ const DHTClient = require('../api/DHTClient.js');
 const CryptoJS = require('crypto-js');
 const base32 = require('base32.js');
 const fs = require('fs');
+const level = require('level');
 
 const bs32Option = { type: "crockford", lc: true };
 
@@ -42,9 +43,9 @@ class ErmuDaemon {
     console.log('ErmuDaemon::onStoreErmu_:: store=<',store,'>');
     console.log('ErmuDaemon::onStoreErmu_:: rank=<',rank,'>');
     console.log('ErmuDaemon::onErmuSpreadMsg_:: address=<',address,'>');
-    const dbPath = `${this.repos_}/${address}/${rank}`;
-    console.log('ErmuDaemon::onStoreErmu_:: dbPath=<',dbPath,'>');
-    fs.mkdirSync(dbPath,{recursive :true});
+    const dbDir = `${this.repos_}/${address}/${rank}`;
+    console.log('ErmuDaemon::onStoreErmu_:: dbDir=<',dbDir,'>');
+    fs.mkdirSync(dbDir,{recursive :true});
     
   }
   getAddress(content) {
