@@ -30,7 +30,7 @@ class ErmuDaemon {
     }
   }
   onErmuSpreadMsg_(ermu,address) {
-    console.log('ErmuDaemon::onErmuSpreadMsg_:: ermu=<',ermu,'>');
+    //console.log('ErmuDaemon::onErmuSpreadMsg_:: ermu=<',ermu,'>');
     //console.log('ErmuDaemon::onErmuSpreadMsg_:: address=<',address,'>');
     if(ermu.store) {
       this.onStoreErmu_(ermu.word,ermu.store,ermu.rank,address)
@@ -52,28 +52,60 @@ class ErmuDaemon {
     if(this.dbs_[dbIndex]) {
       const db = this.dbs_[dbIndex].db;
       this.dbs_[dbIndex].count = iConstCacheActiveCount;
-      this.onSave2Level(db,store);
+      this.onStore2Level(db,store,address,rank);
     } else {
       const dbPath = `${dbDir}/store.level`;
       const db = level(dbPath);
       this.dbs_[dbIndex] = { db:db,count:iConstCacheActiveCount};
-      this.onSave2Level(db,store);
+      this.onStore2Level(db,store,address,rank);
     }
   }
-  onSave2Level(db,store,address) {
+  onStore2Level(db,store,address,rank) {
     const self = this;
     db.get(store, (err, value) => {
-      //console.log('ErmuDaemon::onSave2Level:: err=<',err,'>');
+      //console.log('ErmuDaemon::onStore2Level:: err=<',err,'>');
       if (err) {
-        //console.log('ErmuDaemon::onSave2Level:: err=<',err,'>');
+        //console.log('ErmuDaemon::onStore2Level:: err=<',err,'>');
         if (err.notFound) {
           db.put(store,1);
+          self.onUpdateStats(address,rank);
         }
       } else {
-        //console.log('ErmuDaemon::onSave2Level:: store=<',store,'>');
-        //console.log('ErmuDaemon::onSave2Level:: value=<',value,'>');
+        //console.log('ErmuDaemon::onStore2Level:: store=<',store,'>');
+        //console.log('ErmuDaemon::onStore2Level:: value=<',value,'>');
       }
     })
+  }
+  onUpdateStats(address,rank) {
+    console.log('ErmuDaemon::onUpdateStats:: address=<',address,'>');
+    console.log('ErmuDaemon::onUpdateStats:: rank=<',rank,'>');
+    const dbIndex =  `${address}`;
+    if(this.dbs_[dbIndex]) {
+      const db = this.dbs_[dbIndex].db;
+      this.dbs_[dbIndex].count = iConstCacheActiveCount;
+      this.onCount2Level(db,rank);
+    } else {
+      const dbPath = `${this.repos_}/${address}/stats.level`;
+      const db = level(dbPath);
+      this.dbs_[dbIndex] = { db:db,count:iConstCacheActiveCount};
+      this.onCount2Level(db,rank);
+    }
+  }
+  onCount2Level(db,rank) {
+    db.get(rank, (err, value) => {
+      //console.log('ErmuDaemon::onCount2Level:: err=<',err,'>');
+      if (err) {
+        //console.log('ErmuDaemon::onCount2Level:: err=<',err,'>');
+        if (err.notFound) {
+          db.put(rank,1);
+        }
+      } else {
+        //console.log('ErmuDaemon::onCount2Level:: rank=<',rank,'>');
+        //console.log('ErmuDaemon::onCount2Level:: value=<',value,'>');
+        const oldCount = parseInt(value);
+        db.put(rank,oldCount + 1);
+      }
+    })    
   }
   
   onFetchErmu_(fetch,address) {
