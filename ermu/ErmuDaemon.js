@@ -1,7 +1,6 @@
 'use strict';
 const DHTClient = require('../api/DHTClient.js');
-const CryptoJS = require('crypto-js');
-const base32 = require('base32.js');
+const DHTUtils = require('../api/DHTUtils.js');
 const fs = require('fs');
 const level = require('level');
 
@@ -11,6 +10,7 @@ const iConstCacheActiveCount = 100;
 class ErmuDaemon {
   constructor() {
     this.dht_ = new DHTClient();
+    this.utils_ = new DHTUtils();
     this.dbs_ = {};
     const self = this;
     this.dht_.peerInfo( (peerInfo)=> {
@@ -30,14 +30,14 @@ class ErmuDaemon {
     }
   }
   onErmuSpreadMsg_(ermu,address) {
-    //console.log('ErmuDaemon::onErmuSpreadMsg_:: ermu=<',ermu,'>');
+    console.log('ErmuDaemon::onErmuSpreadMsg_:: ermu=<',ermu,'>');
     //console.log('ErmuDaemon::onErmuSpreadMsg_:: address=<',address,'>');
     if(ermu.store) {
       this.onStoreErmu_(ermu.word,ermu.store,ermu.rank,address)
     } else if (ermu.fetch) {
-      this.onFetchErmu_(address);
+      this.onFetchErmu_(ermu.fetch,address);
     } else {
-      
+      console.log('ErmuDaemon::onErmuSpreadMsg_:: ermu=<',ermu,'>');
     }
   }
   onStoreErmu_(word,store,rank,address) {
@@ -76,17 +76,13 @@ class ErmuDaemon {
     })
   }
   
-  onFetchErmu_(address) {
+  onFetchErmu_(fetch,address) {
+    console.log('ErmuDaemon::onFetchErmu_:: fetch=<',fetch,'>');
     console.log('ErmuDaemon::onFetchErmu_:: address=<',address,'>');
   }
 
-  
   getAddress(content) {
-    const contentsSha3 = CryptoJS.SHA3(content).toString(CryptoJS.enc.Hex);
-    const contentRipemd = CryptoJS.RIPEMD160(contentsSha3).toString(CryptoJS.enc.Hex);
-    //console.log('ErmuClient::getAddress:: contentRipemd=<',contentRipemd,'>');
-    const contentBuffer = Buffer.from(contentRipemd,'hex');
-    return base32.encode(contentBuffer,bs32Option);
+    return this.utils_.calcAddress(content);
   }
 };
 
