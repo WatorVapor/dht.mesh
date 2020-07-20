@@ -29,15 +29,14 @@ class ErmuClient {
       console.log('ErmuClient::append:: infoSpread=<',infoSpread,'>');
     });
   }
-  fetch(keyword,from,to) {
+  fetch(keyword,offset) {
     //console.log('ErmuClient::append:: keyword=<',keyword,'>');
     const address = this.getAddress(keyword);
     //console.log('ErmuClient::append:: address=<',address,'>');
     const msgObj = {
       ermu: {
         fetch:{
-          from:from,
-          to:to
+          offset:offset
         }
       }
     }

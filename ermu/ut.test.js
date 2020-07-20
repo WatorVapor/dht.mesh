@@ -3,12 +3,20 @@ const ErmuClient = require('./ErmuClient.js');
 const ermu = new ErmuClient();
 
 const appendData = ()=> {
-  const store = ermu.getAddress('https://zh.wikipedia.org/wiki/汉语');
-  ermu.append('汉语',store,1,(info) => {
-    console.log('ermu.append:: info=<',info,'>');
-  });  
+  storeKeyWordUri('汉语','https://zh.wikipedia.org/wiki/汉语',1);
+  storeKeyWordUri('汉语','https://www.archi-voice.jp/contents/chn_blog/%E4%B8%AD%E6%96%87%EF%BC%9F%E6%B1%89%E8%AF%AD%EF%BC%9F%E6%99%AE%E9%80%9A%E8%AF%9D%EF%BC%9F/',1);
+  storeKeyWordUri('汉语','http://www.hwjyw.com/textbooks/downloads/hanyu/',2);
+  storeKeyWordUri('汉语','https://ja.wiktionary.org/wiki/%E6%B1%89%E8%AF%AD',3);
+  storeKeyWordUri('汉语','http://www.chinesecio.com/',1);
+  storeKeyWordUri('汉语','http://www.shihan.org.cn/',3);
 };
 
+const storeKeyWordUri = (keyword,uri,rank) => {
+  const store = ermu.getAddress(uri);
+  ermu.append(keyword,store,rank,(info) => {
+    //console.log('ermu.append:: info=<',info,'>');
+  });  
+}
 
 setTimeout(appendData,1000);
 
@@ -17,9 +25,15 @@ const fetchData = ()=> {
     //console.log('ermu.fetch4KeyWord:: resource=<',resource,'>');
     onFetchResult(resource);
   });  
+  ermu.fetch('汉语',3,(resource) => {
+    //console.log('ermu.fetch4KeyWord:: resource=<',resource,'>');
+    onFetchResult(resource);
+  });  
+  ermu.fetch('汉语',4,(resource) => {
+    //console.log('ermu.fetch4KeyWord:: resource=<',resource,'>');
+    onFetchResult(resource);
+  });  
 }
-
-
 setTimeout(fetchData,2000);
 
 const onFetchResult = (result) => {
