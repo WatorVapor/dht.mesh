@@ -53,6 +53,8 @@ class DHTDaemon {
           await this.onSpreadData_(jMsg);
         } else if(jMsg.delivery) {
           await this.onDeliveryData_(jMsg);
+        } else if(jMsg.loopback) {
+          await this.onLoopbackData_(jMsg);
         } else if(jMsg.subscribe) {
           this.onSubscribeData_(jMsg);
         } else {
@@ -109,6 +111,18 @@ class DHTDaemon {
       console.log('DHTDaemon::onDeliveryData_::::e=<',e,'>');
     }
   };
+
+  async onLoopbackData_(jMsg) {
+    //console.log('DHTDaemon::onLoopbackData_::jMsg=<',jMsg,'>');
+    const RespBuff = Buffer.from(JSON.stringify(jMsg),'utf-8');
+    try {
+      this.publisher_.publish(jMsg.channel,RespBuff);
+    } catch(e) {
+      console.log('DHTDaemon::onLoopbackData_::::e=<',e,'>');
+    }
+  };
+
+
   onSubscribeData_(jMsg) {
     //console.log('DHTDaemon::onSubscribeData_::jMsg=<',jMsg,'>');
     this.remoteSubChannels_.push(jMsg.channel);

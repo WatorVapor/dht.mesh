@@ -11,6 +11,10 @@ class ErmuClient {
     this.dht_.peerInfo( (peerInfo)=> {
       console.log('ErmuClient::.constructor:: peerInfo=<',peerInfo,'>');
     });
+    const self = this;
+    this.dht_.subscribe( ( remoteMsg ) => {
+      self.onRemoteMsg(remoteMsg);
+    });
   }
   append(keyword,contentAddress,rank) {
     //console.log('ErmuClient::append:: keyword=<',keyword,'>');
@@ -43,6 +47,10 @@ class ErmuClient {
     this.dht_.spread(address,msgObj,(infoSpread)=>{
       console.log('ErmuClient::append:: infoSpread=<',infoSpread,'>');
     });
+  }
+  
+  onRemoteMsg(msg) {
+    console.log('ErmuClient::onRemoteMsg:: msg=<',msg,'>');
   }
 
   getAddress(content) {

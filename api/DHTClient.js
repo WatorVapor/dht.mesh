@@ -72,6 +72,14 @@ class DHTClient {
     const cbTag = this.writeData_(msgMesh);
     this.cbSub_[cbTag] = cb;
   }
+  
+  loopback(peer,msg) {
+    //console.log('DHTClient::loopback msg=<',msg,'>');
+    const msgMesh = {
+      loopback:msg,
+    };
+    const cbTag = this.writeData_(msgMesh);
+  }
 
   
   onError_(err) {
