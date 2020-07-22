@@ -73,7 +73,7 @@ class PeerNetWork {
   }
 
   delivery(resource) {
-    //console.log('PeerNetWork::delivery resource=<',resource,'>');
+    console.log('PeerNetWork::delivery resource=<',resource,'>');
     const relayPeer = this.route_.calcPeer(resource.address);
     console.log('PeerNetWork::delivery relayPeer=<',relayPeer,'>');
     if(relayPeer.min && relayPeer.min !== this.crypto_.id) {
@@ -290,7 +290,13 @@ class PeerNetWork {
     //console.log('PeerNetWork::relayMsgTo_ dst=<', dst, '>');
     //console.log('PeerNetWork::relayMsgTo_ msg=<', msg, '>');
     if(dst) {
-      const footprint = msg.spread.footprint || msg.delivery.footprint ;
+      let footprint;
+      if(msg.spread && msg.spread.footprint) {
+        footprint = msg.spread.footprint
+      }
+      if(msg.delivery && msg.delivery.footprint) {
+        footprint = msg.delivery.footprint
+      }
       //console.log('PeerNetWork::relayMsgTo_ footprint=<', footprint, '>');
       const circle = footprint.includes(dst);
       if(!circle) {
@@ -326,7 +332,7 @@ class PeerNetWork {
   onRemoteDelivery__(peerFrom,remoteMsg) {
     //console.log('PeerNetWork::onRemoteDelivery__ peerFrom=<', peerFrom, '>');
     //console.log('PeerNetWork::onRemoteDelivery__ remoteMsg=<', remoteMsg, '>');
-    if(remoteMsg.peer === this.crypto_.id) {
+    if(remoteMsg.address === this.crypto_.id) {
       this.onRemoteDelivery(remoteMsg);
       return;
     }
