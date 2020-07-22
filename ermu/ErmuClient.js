@@ -50,7 +50,17 @@ class ErmuClient {
   }
   
   onRemoteMsg(msg) {
-    console.log('ErmuClient::onRemoteMsg:: msg=<',msg,'>');
+    //console.log('ErmuClient::onRemoteMsg:: msg=<',msg,'>');
+     if(msg.spread && msg.spread.payload && msg.spread.payload.ermu) {
+       /// empty.
+    } else if(msg.loopback) {
+      this.onLoopBackMsg_(msg.loopback);
+    } else {
+      console.log('ErmuDaemon::onRemoteMsg:: msg=<',msg,'>');
+    }
+  }
+  onLoopBackMsg_(loopbak) {
+    console.log('ErmuClient::onLoopBackMsg_:: loopbak=<',loopbak,'>');
   }
 
   getAddress(content) {

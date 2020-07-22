@@ -114,9 +114,11 @@ class DHTDaemon {
 
   async onLoopbackData_(jMsg) {
     //console.log('DHTDaemon::onLoopbackData_::jMsg=<',jMsg,'>');
-    const RespBuff = Buffer.from(JSON.stringify(jMsg),'utf-8');
     try {
-      this.publisher_.publish(jMsg.channel,RespBuff);
+      const RespBuff = Buffer.from(JSON.stringify(jMsg),'utf-8');
+      for(const remoteSub of this.remoteSubChannels_) {
+        this.publisher_.publish(remoteSub,RespBuff);
+      }
     } catch(e) {
       console.log('DHTDaemon::onLoopbackData_::::e=<',e,'>');
     }

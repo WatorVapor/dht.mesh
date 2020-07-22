@@ -99,6 +99,10 @@ class DHTClient {
           this.onRemoteSpreadMsg_(jMsg.remoteSpread);
         } else if(jMsg.remoteDelivery) {
           this.onRemoteDeliveryMsg_(jMsg.remoteDelivery);
+        } else if(jMsg.loopback) {
+          this.onLoopbackMsg_(jMsg);
+        } else if(jMsg.spread) {
+          /// empty
         } else {
           console.log('DHTClient::onMsg_ jMsg=<',jMsg,'>');
         }
@@ -173,6 +177,14 @@ class DHTClient {
     //console.log('DHTClient::onRemoteDeliveryMsg_ jMsg=<',jMsg,'>');
     for(const cbIndex in this.cbSub_) {
       //console.log('DHTClient::onRemoteSpreadMsg_ cbIndex=<',cbIndex,'>');
+      const cb = this.cbSub_[cbIndex];
+      cb(jMsg);
+    }
+  }
+  onLoopbackMsg_(jMsg) {
+    //console.log('DHTClient::onLoopbackMsg_ jMsg=<',jMsg,'>');
+    for(const cbIndex in this.cbSub_) {
+      //console.log('DHTClient::onLoopbackMsg_ cbIndex=<',cbIndex,'>');
       const cb = this.cbSub_[cbIndex];
       cb(jMsg);
     }

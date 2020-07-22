@@ -27,6 +27,8 @@ class ErmuDaemon {
     //console.log('ErmuDaemon::onRemoteMsg:: msg=<',msg,'>');
     if(msg.spread && msg.spread.payload && msg.spread.payload.ermu) {
       this.onErmuSpreadMsg_(msg.spread.payload.ermu,msg.address,msg.from);
+    } else if(msg.loopback) {
+      // empty...
     } else {
       console.log('ErmuDaemon::onRemoteMsg:: msg=<',msg,'>');
     }
