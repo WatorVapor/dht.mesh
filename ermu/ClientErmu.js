@@ -4,12 +4,12 @@ const DHTUtils = require('../api/DHTUtils.js');
 
 const bs32Option = { type: "crockford", lc: true };
 
-class ErmuClient {
+class ClientErmu {
   constructor() {
     this.dht_ = new DHTClient();
     this.utils_ = new DHTUtils();
     this.dht_.peerInfo( (peerInfo)=> {
-      console.log('ErmuClient::.constructor:: peerInfo=<',peerInfo,'>');
+      console.log('ClientErmu::.constructor:: peerInfo=<',peerInfo,'>');
     });
     const self = this;
     this.dht_.subscribe( ( remoteMsg ) => {
@@ -17,11 +17,11 @@ class ErmuClient {
     });
   }
   append(keyword,contentAddress,rank) {
-    //console.log('ErmuClient::append:: keyword=<',keyword,'>');
-    //console.log('ErmuClient::append:: contentAddress=<',contentAddress,'>');
-    //console.log('ErmuClient::append:: rank=<',rank,'>');
+    //console.log('ClientErmu::append:: keyword=<',keyword,'>');
+    //console.log('ClientErmu::append:: contentAddress=<',contentAddress,'>');
+    //console.log('ClientErmu::append:: rank=<',rank,'>');
     const address = this.getAddress(keyword);
-    //console.log('ErmuClient::append:: address=<',address,'>');
+    //console.log('ClientErmu::append:: address=<',address,'>');
     const msgObj = {
       ermu: {
         word:keyword,
@@ -30,13 +30,13 @@ class ErmuClient {
       }
     }
     this.dht_.spread(address,msgObj,(infoSpread)=>{
-      console.log('ErmuClient::append:: infoSpread=<',infoSpread,'>');
+      console.log('ClientErmu::append:: infoSpread=<',infoSpread,'>');
     });
   }
   fetch(keyword,offset) {
-    //console.log('ErmuClient::append:: keyword=<',keyword,'>');
+    //console.log('ClientErmu::append:: keyword=<',keyword,'>');
     const address = this.getAddress(keyword);
-    //console.log('ErmuClient::append:: address=<',address,'>');
+    //console.log('ClientErmu::append:: address=<',address,'>');
     const msgObj = {
       ermu: {
         fetch:{
@@ -45,12 +45,12 @@ class ErmuClient {
       }
     }
     this.dht_.spread(address,msgObj,(infoSpread)=>{
-      console.log('ErmuClient::append:: infoSpread=<',infoSpread,'>');
+      console.log('ClientErmu::append:: infoSpread=<',infoSpread,'>');
     });
   }
   
   onRemoteMsg(msg) {
-    //console.log('ErmuClient::onRemoteMsg:: msg=<',msg,'>');
+    //console.log('ClientErmu::onRemoteMsg:: msg=<',msg,'>');
      if(msg.spread && msg.spread.payload && msg.spread.payload.ermu) {
        /// empty.
     } else if(msg.loopback) {
@@ -60,7 +60,7 @@ class ErmuClient {
     }
   }
   onLoopBackMsg_(loopbak) {
-    console.log('ErmuClient::onLoopBackMsg_:: loopbak=<',loopbak,'>');
+    console.log('ClientErmu::onLoopBackMsg_:: loopbak=<',loopbak,'>');
   }
 
   getAddress(content) {
@@ -68,5 +68,5 @@ class ErmuClient {
   }
 };
 
-module.exports = ErmuClient;
+module.exports = ClientErmu;
 
