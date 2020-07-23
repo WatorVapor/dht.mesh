@@ -21,7 +21,7 @@ class ClientKV {
     const address = this.getAddress(content);
     //console.log('ClientKV::store:: address=<',address,'>');
     const msgObj = {
-      indexer: {
+      kv: {
         store:content,
       }
     }
@@ -31,11 +31,9 @@ class ClientKV {
     return address;
   }
   fetch(address) {
-    //console.log('ClientKV::append:: keyword=<',keyword,'>');
-    const address = this.getAddress(keyword);
     //console.log('ClientKV::append:: address=<',address,'>');
     const msgObj = {
-      indexer: {
+      kv: {
         fetch:address
       }
     }
@@ -46,7 +44,7 @@ class ClientKV {
   
   onRemoteMsg(msg) {
     //console.log('ClientKV::onRemoteMsg:: msg=<',msg,'>');
-     if(msg.spread && msg.spread.payload && msg.spread.payload.ermu) {
+     if(msg.spread && msg.spread.payload) {
        /// empty.
     } else if(msg.delivery && msg.delivery.payload) {
       this.onDeliveryMsg_(msg.delivery.payload);
@@ -56,20 +54,20 @@ class ClientKV {
       console.log('ClientKV::onRemoteMsg:: msg=<',msg,'>');
     }
   }
-  onLoopBackMsg_(loopbak) {
-    //console.log('ClientKV::onLoopBackMsg_:: loopbak=<',loopbak,'>');
-    if(loopbak.ermuR) {
-      this.onErmuReplyMsg_(loopbak.ermuR);
-    }
-  }
   onDeliveryMsg_(payload) {
     //console.log('ClientKV::onDeliveryMsg_:: payload=<',payload,'>');
-    if(payload.ermuR) {
-      this.onErmuReplyMsg_(payload.ermuR);
+    if(payload.kvR) {
+      this.onKvReplyMsg_(payload.kvR);
     }
   }
-  onErmuReplyMsg_(reply) {
-    console.log('ClientKV::onErmuReplyMsg_:: reply=<',reply,'>');
+  onLoopBackMsg_(loopbak) {
+    //console.log('ClientKV::onLoopBackMsg_:: loopbak=<',loopbak,'>');
+    if(loopbak.kvR) {
+      this.onKvReplyMsg_(loopbak.kvR);
+    }
+  }
+  onKvReplyMsg_(reply) {
+    console.log('ClientKV::onKvReplyMsg_:: reply=<',reply,'>');
   }
 
   getAddress(content) {
