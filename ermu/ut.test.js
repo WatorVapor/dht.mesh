@@ -1,6 +1,6 @@
 'use strict';
-const ErmuClient = require('./ErmuClient.js');
-const ermu = new ErmuClient();
+const ClientErmu = require('./ClientErmu.js');
+const ermu = new ClientErmu();
 
 const appendData = ()=> {
   storeKeyWordUri('汉语','https://zh.wikipedia.org/wiki/汉语',1);

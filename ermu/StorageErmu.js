@@ -27,6 +27,8 @@ class StorageErmu {
     //console.log('StorageErmu::onRemoteMsg:: msg=<',msg,'>');
     if(msg.spread && msg.spread.payload && msg.spread.payload.ermu) {
       this.onErmuSpreadMsg_(msg.spread.payload.ermu,msg.address,msg.from);
+    } else if(msg.delivery && msg.delivery.payload && msg.delivery.payload.ermu) {
+      // empty...
     } else if(msg.loopback) {
       // empty...
     } else {
@@ -200,10 +202,11 @@ class StorageErmu {
     //console.log('StorageErmu::deliveryReply_:: payload=<',payload,'>');
     //console.log('StorageErmu::deliveryReply_:: from=<',from,'>');
     //console.log('StorageErmu::deliveryReply_:: this.id=<',this.id,'>');
+    const ermuPayload = {ermuR:payload};
     if(this.id !== from) {
-      this.dht_.delivery(from,payload);
+      this.dht_.delivery(from,ermuPayload);
     } else {
-      this.dht_.loopback(from,payload);
+      this.dht_.loopback(from,ermuPayload);
     }
   }
   

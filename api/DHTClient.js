@@ -99,6 +99,8 @@ class DHTClient {
           this.onRemoteSpreadMsg_(jMsg.remoteSpread);
         } else if(jMsg.remoteDelivery) {
           this.onRemoteDeliveryMsg_(jMsg.remoteDelivery);
+        } else if(jMsg.delivery) {
+          this.onDeliveryMsg_(jMsg);
         } else if(jMsg.loopback) {
           this.onLoopbackMsg_(jMsg);
         } else if(jMsg.spread) {
@@ -180,6 +182,9 @@ class DHTClient {
       const cb = this.cbSub_[cbIndex];
       cb(jMsg);
     }
+  }
+  onDeliveryMsg_(jMsg) {
+    //console.log('DHTClient::onDeliveryMsg_ jMsg=<',jMsg,'>');
   }
   onLoopbackMsg_(jMsg) {
     //console.log('DHTClient::onLoopbackMsg_ jMsg=<',jMsg,'>');

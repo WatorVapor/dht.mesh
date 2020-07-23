@@ -53,14 +53,28 @@ class ClientErmu {
     //console.log('ClientErmu::onRemoteMsg:: msg=<',msg,'>');
      if(msg.spread && msg.spread.payload && msg.spread.payload.ermu) {
        /// empty.
+    } else if(msg.delivery && msg.delivery.payload) {
+      this.onDeliveryMsg_(msg.delivery.payload);
     } else if(msg.loopback) {
       this.onLoopBackMsg_(msg.loopback);
     } else {
-      console.log('ErmuDaemon::onRemoteMsg:: msg=<',msg,'>');
+      console.log('ClientErmu::onRemoteMsg:: msg=<',msg,'>');
     }
   }
   onLoopBackMsg_(loopbak) {
-    console.log('ClientErmu::onLoopBackMsg_:: loopbak=<',loopbak,'>');
+    //console.log('ClientErmu::onLoopBackMsg_:: loopbak=<',loopbak,'>');
+    if(loopbak.ermuR) {
+      this.onErmuReplyMsg_(loopbak.ermuR);
+    }
+  }
+  onDeliveryMsg_(payload) {
+    //console.log('ClientErmu::onDeliveryMsg_:: payload=<',payload,'>');
+    if(payload.ermuR) {
+      this.onErmuReplyMsg_(payload.ermuR);
+    }
+  }
+  onErmuReplyMsg_(reply) {
+    console.log('ClientErmu::onErmuReplyMsg_:: reply=<',reply,'>');
   }
 
   getAddress(content) {
