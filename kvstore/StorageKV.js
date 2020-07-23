@@ -53,7 +53,7 @@ class StorageKV {
     try {
       const isSaved = await db.get(address);
     } catch(err) {
-      console.log('StorageKV::onStore_:: err=<',err,'>');
+      //console.log('StorageKV::onStore_:: err=<',err,'>');
       if (err.notFound) {
         await db.put(address,JSON.stringify(content));
       } else {
@@ -67,7 +67,9 @@ class StorageKV {
     //console.log('StorageKV::onFetch_:: address=<',address,'>');
     //console.log('StorageKV::onFetch_:: from=<',from,'>');
     const db = this.getLevelDB_(address);
-    const deliveryPayload = {};
+    const deliveryPayload = {
+      address:address
+    };
     try {
       const content = await db.get(address);
       //console.log('StorageKV::onFetch_:: content=<',content,'>');

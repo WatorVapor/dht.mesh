@@ -18,7 +18,7 @@ class ClientKV {
   }
   store(content) {
     //console.log('ClientKV::store:: content=<',content,'>');
-    const address = this.getAddress(content);
+    const address = this.getAddress(JSON.stringify(content));
     //console.log('ClientKV::store:: address=<',address,'>');
     const msgObj = {
       kv: {
@@ -67,7 +67,10 @@ class ClientKV {
     }
   }
   onKvReplyMsg_(reply) {
-    console.log('ClientKV::onKvReplyMsg_:: reply=<',reply,'>');
+    //console.log('ClientKV::onKvReplyMsg_:: reply=<',reply,'>');
+    if(typeof this.onData === 'function') {
+      this.onData(reply);
+    }
   }
 
   getAddress(content) {
