@@ -3,7 +3,9 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 PARENT_DiR=$(dirname $SCRIPT_DIR)
 echo "SCRIPT_DIR:=${SCRIPT_DIR}"
 echo "PARENT_DiR:=${PARENT_DiR}"
-docker rm ermu.storage
+DOCKER_MAME=kWordstore.storage
+docker stop ${DOCKER_MAME}
+docker rm ${DOCKER_MAME}
 docker run -d \
   -v /etc/group:/etc/group:ro \
   -v /etc/passwd:/etc/passwd:ro \
@@ -13,7 +15,7 @@ docker run -d \
   -u $(id -u $USER):$(id -g $USER) \
   -w ${PARENT_DiR} \
   --net host \
-  --name "ermu.storage" \
   --memory=128M \
   --cpu-shares=256 \
-  node:lts node ./ermu/StorageErmu.js
+  --name "${DOCKER_MAME}" \
+  node:lts node ./kwstore/StorageErmu.js
