@@ -16,7 +16,7 @@ class StorageKW {
     const self = this;
     this.dht_.peerInfo( (peerInfo)=> {
       console.log('StorageKW::.constructor:: peerInfo=<',peerInfo,'>');
-      self.repos_ = `${peerInfo.reps.dht}/ermu`;
+      self.repos_ = `${peerInfo.reps.dht}/kword.store`;
       self.id = peerInfo.id;
     });
     this.dht_.subscribe( ( remoteMsg ) => {
@@ -25,9 +25,9 @@ class StorageKW {
   }
   onRemoteMsg(msg) {
     //console.log('StorageKW::onRemoteMsg:: msg=<',msg,'>');
-    if(msg.spread && msg.spread.payload && msg.spread.payload.ermu) {
-      this.onErmuSpreadMsg_(msg.spread.payload.ermu,msg.address,msg.from);
-    } else if(msg.delivery && msg.delivery.payload && msg.delivery.payload.ermu) {
+    if(msg.spread && msg.spread.payload) {
+      this.onSpreadMsg_(msg.spread.payload,msg.address,msg.from);
+    } else if(msg.delivery && msg.delivery.payload) {
       // empty...
     } else if(msg.loopback) {
       // empty...
@@ -35,22 +35,22 @@ class StorageKW {
       console.log('StorageKW::onRemoteMsg:: msg=<',msg,'>');
     }
   }
-  onErmuSpreadMsg_(ermu,address,from) {
-    //console.log('StorageKW::onErmuSpreadMsg_:: ermu=<',ermu,'>');
-    //console.log('StorageKW::onErmuSpreadMsg_:: address=<',address,'>');
-    if(ermu.store) {
-      this.onStoreErmu_(ermu.word,ermu.store,ermu.rank,address)
-    } else if (ermu.fetch) {
-      this.onFetchErmu_(ermu.fetch,address,from);
+  onSpreadMsg_(payload,address,from) {
+    //console.log('StorageKW::onSpreadMsg_:: payload=<',payload,'>');
+    //console.log('StorageKW::onSpreadMsg_:: address=<',address,'>');
+    if(payload.kw && payload.kw.store) {
+      this.onStore_(payload.kw.word,payload.kw.store,payload.kw.rank,address)
+    } else if (payload.kw && payload.kw.fetch) {
+      this.onFetch_(payload.kw.fetch,address,from);
     } else {
-      console.log('StorageKW::onErmuSpreadMsg_:: ermu=<',ermu,'>');
+      console.log('StorageKW::onSpreadMsg_:: payload=<',payload,'>');
     }
   }
-  onStoreErmu_(word,store,rank,address) {
-    //console.log('StorageKW::onStoreErmu_:: word=<',word,'>');
-    //console.log('StorageKW::onStoreErmu_:: store=<',store,'>');
-    //console.log('StorageKW::onStoreErmu_:: rank=<',rank,'>');
-    //console.log('StorageKW::onErmuSpreadMsg_:: address=<',address,'>');
+  onStore_(word,store,rank,address) {
+    //console.log('StorageKW::onStore_:: word=<',word,'>');
+    console.log('StorageKW::onStore_:: store=<',store,'>');
+    //console.log('StorageKW::onStore_:: rank=<',rank,'>');
+    //console.log('StorageKW::onStore_:: address=<',address,'>');
     const db = this.getResourceDB_(address,rank);
     this.store2Level(db,store,address,rank);
   }
@@ -93,10 +93,10 @@ class StorageKW {
     })    
   }
   
-  onFetchErmu_(fetch,address,from) {
-    //console.log('StorageKW::onFetchErmu_:: fetch=<',fetch,'>');
-    //console.log('StorageKW::onFetchErmu_:: address=<',address,'>');
-    //console.log('StorageKW::onFetchErmu_:: from=<',from,'>');
+  onFetch_(fetch,address,from) {
+    //console.log('StorageKW::onFetch_:: fetch=<',fetch,'>');
+    //console.log('StorageKW::onFetch_:: address=<',address,'>');
+    //console.log('StorageKW::onFetch_:: from=<',from,'>');
     const db = this.getStatsDB_(address);
     this.fetchStatsFromLevel(db,fetch,address,from);
   }
@@ -109,28 +109,28 @@ class StorageKW {
     });
     vStream.on('end', (data) => {
       //console.log('StorageKW::fetchStatsFromLevel:: rankCount=<',rankCount,'>');
-      self.onFetchErmuResource_(rankCount,fetch,address,from);
+      self.onFetchResource_(rankCount,fetch,address,from);
     });
   }
-  onFetchErmuResource_(rankCount,fetch,address,from) {
-    //console.log('StorageKW::onFetchErmuResource_:: rankCount=<',rankCount,'>');
+  onFetchResource_(rankCount,fetch,address,from) {
+    //console.log('StorageKW::onFetchResource_:: rankCount=<',rankCount,'>');
     rankCount.sort((a,b)=>{return b[0] -a[0]});
-    //console.log('StorageKW::onFetchErmuResource_:: rankCount=<',rankCount,'>');
-    //console.log('StorageKW::onFetchErmuResource_:: fetch=<',fetch,'>');
-    //console.log('StorageKW::onFetchErmuResource_:: address=<',address,'>');
-    //console.log('StorageKW::onFetchErmuResource_:: from=<',from,'>');
+    //console.log('StorageKW::onFetchResource_:: rankCount=<',rankCount,'>');
+    //console.log('StorageKW::onFetchResource_:: fetch=<',fetch,'>');
+    //console.log('StorageKW::onFetchResource_:: address=<',address,'>');
+    //console.log('StorageKW::onFetchResource_:: from=<',from,'>');
     let itemFromOffset = 0;
     if(fetch.offset > 0) {
       itemFromOffset = fetch.offset;
     }
-    //console.log('StorageKW::onFetchErmuResource_:: itemFromOffset=<',itemFromOffset,'>');
+    //console.log('StorageKW::onFetchResource_:: itemFromOffset=<',itemFromOffset,'>');
     let sumFromHigh = 0;
     let offsetHintRank = false;
     let skipFirstDbCounter = 0;
     const fetchRank = [];
     for(const rank of rankCount) {
-      //console.log('StorageKW::onFetchErmuResource_:: rank=<',rank,'>');
-      //console.log('StorageKW::onFetchErmuResource_:: sumFromHigh=<',sumFromHigh,'>');
+      //console.log('StorageKW::onFetchResource_:: rank=<',rank,'>');
+      //console.log('StorageKW::onFetchResource_:: sumFromHigh=<',sumFromHigh,'>');
       if(sumFromHigh + rank[1] > itemFromOffset && offsetHintRank === false) {
         offsetHintRank = rank[0];
         skipFirstDbCounter = itemFromOffset - sumFromHigh;
@@ -140,9 +140,9 @@ class StorageKW {
       }
       sumFromHigh += rank[1];
     }
-    //console.log('StorageKW::onFetchErmuResource_:: sumFromHigh=<',sumFromHigh,'>');
-    //console.log('StorageKW::onFetchErmuResource_:: offsetHintRank=<',offsetHintRank,'>');
-    //console.log('StorageKW::onFetchErmuResource_:: skipFirstDbCounter=<',skipFirstDbCounter,'>');
+    //console.log('StorageKW::onFetchResource_:: sumFromHigh=<',sumFromHigh,'>');
+    //console.log('StorageKW::onFetchResource_:: offsetHintRank=<',offsetHintRank,'>');
+    //console.log('StorageKW::onFetchResource_:: skipFirstDbCounter=<',skipFirstDbCounter,'>');
     const deliveryPayload = {
       offset:itemFromOffset,
       total:sumFromHigh,
@@ -202,11 +202,11 @@ class StorageKW {
     //console.log('StorageKW::deliveryReply_:: payload=<',payload,'>');
     //console.log('StorageKW::deliveryReply_:: from=<',from,'>');
     //console.log('StorageKW::deliveryReply_:: this.id=<',this.id,'>');
-    const ermuPayload = {ermuR:payload};
+    const kwPayload = {kwR:payload};
     if(this.id !== from) {
-      this.dht_.delivery(from,ermuPayload);
+      this.dht_.delivery(from,kwPayload);
     } else {
-      this.dht_.loopback(from,ermuPayload);
+      this.dht_.loopback(from,kwPayload);
     }
   }
   

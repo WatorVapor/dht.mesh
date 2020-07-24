@@ -12,8 +12,8 @@ const appendData = ()=> {
 };
 
 const storeKeyWordUri = (keyword,uri,rank) => {
-  const store = kws.getAddress(uri);
-  kws.append(keyword,store,rank,(info) => {
+  const storeAddress = kws.getAddress(uri);
+  kws.append(keyword,storeAddress,rank,(info) => {
     //console.log('kws.append:: info=<',info,'>');
   });  
 }

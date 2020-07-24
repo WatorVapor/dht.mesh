@@ -16,7 +16,7 @@ class StorageKV {
     const self = this;
     this.dht_.peerInfo( (peerInfo)=> {
       console.log('StorageKV::.constructor:: peerInfo=<',peerInfo,'>');
-      self.repos_ = `${peerInfo.reps.dht}/storekv`;
+      self.repos_ = `${peerInfo.reps.dht}/kvalue.store`;
       self.id = peerInfo.id;
     });
     this.dht_.subscribe( ( remoteMsg ) => {

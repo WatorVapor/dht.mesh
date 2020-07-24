@@ -23,7 +23,7 @@ class ClientKW {
     const address = this.getAddress(keyword);
     //console.log('ClientKW::append:: address=<',address,'>');
     const msgObj = {
-      ermu: {
+      kw: {
         word:keyword,
         store:contentAddress,
         rank:rank
@@ -38,7 +38,7 @@ class ClientKW {
     const address = this.getAddress(keyword);
     //console.log('ClientKW::append:: address=<',address,'>');
     const msgObj = {
-      ermu: {
+      kw: {
         fetch:{
           offset:offset
         }
@@ -51,7 +51,7 @@ class ClientKW {
   
   onRemoteMsg(msg) {
     //console.log('ClientKW::onRemoteMsg:: msg=<',msg,'>');
-     if(msg.spread && msg.spread.payload && msg.spread.payload.ermu) {
+     if(msg.spread && msg.spread.payload) {
        /// empty.
     } else if(msg.delivery && msg.delivery.payload) {
       this.onDeliveryMsg_(msg.delivery.payload);
@@ -63,18 +63,18 @@ class ClientKW {
   }
   onLoopBackMsg_(loopbak) {
     //console.log('ClientKW::onLoopBackMsg_:: loopbak=<',loopbak,'>');
-    if(loopbak.ermuR) {
-      this.onErmuReplyMsg_(loopbak.ermuR);
+    if(loopbak.kwR) {
+      this.onReplyMsg_(loopbak.kwR);
     }
   }
   onDeliveryMsg_(payload) {
     //console.log('ClientKW::onDeliveryMsg_:: payload=<',payload,'>');
-    if(payload.ermuR) {
-      this.onErmuReplyMsg_(payload.ermuR);
+    if(payload.kwR) {
+      this.onReplyMsg_(payload.kwR);
     }
   }
-  onErmuReplyMsg_(reply) {
-    console.log('ClientKW::onErmuReplyMsg_:: reply=<',reply,'>');
+  onReplyMsg_(reply) {
+    console.log('ClientKW::onReplyMsg_:: reply=<',reply,'>');
   }
 
   getAddress(content) {
