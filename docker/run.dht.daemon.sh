@@ -14,4 +14,6 @@ docker run -d \
   -w ${PARENT_DiR} \
   --net host \
   --name "dht.daemon" \
+  --memory=128M \
+  --cpu-shares=256 \
   node:lts node ./cli/daemon.js

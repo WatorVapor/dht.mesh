@@ -14,4 +14,6 @@ docker run -d \
   -w ${PARENT_DiR} \
   --net host \
   --name "ermu.storage" \
+  --memory=128M \
+  --cpu-shares=256 \
   node:lts node ./ermu/StorageErmu.js
