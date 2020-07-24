@@ -6,6 +6,16 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "dependencies": {
+    "base32.js": "^0.1.0",
+    "big-integer": "^1.6.48",
+    "bitwise": "^2.0.4",
+    "crypto-js": "^4.0.0",
+    "level": "^6.0.1",
+    "redis": "^3.0.2",
+    "tweetnacl": "^1.0.2",
+    "tweetnacl-util": "^0.15.1"
+  }
   "repository": {
     "type": "git",
     "url": "git+https://github.com/WatorVapor/dht.mesh.git"

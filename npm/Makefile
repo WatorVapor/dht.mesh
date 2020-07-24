@@ -1,0 +1,5 @@
+pack:
+	npm run build
+	
+	
+	
