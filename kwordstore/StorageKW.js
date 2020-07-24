@@ -14,6 +14,7 @@ class StorageKW {
     this.utils_ = new DHTUtils();
     this.dbs_ = {};
     const self = this;
+    this.stats_ = {};
     this.dht_.peerInfo( (peerInfo)=> {
       console.log('StorageKW::.constructor:: peerInfo=<',peerInfo,'>');
       self.repos_ = `${peerInfo.reps.dht}/kword.store`;
@@ -48,69 +49,62 @@ class StorageKW {
   }
   onStore_(word,store,rank,address) {
     //console.log('StorageKW::onStore_:: word=<',word,'>');
-    console.log('StorageKW::onStore_:: store=<',store,'>');
+    //console.log('StorageKW::onStore_:: store=<',store,'>');
     //console.log('StorageKW::onStore_:: rank=<',rank,'>');
     //console.log('StorageKW::onStore_:: address=<',address,'>');
     const db = this.getResourceDB_(address,rank);
     this.store2Level(db,store,address,rank);
   }
-  store2Level(db,store,address,rank) {
+  async store2Level(db,store,address,rank) {
     const self = this;
-    db.get(store, (err, value) => {
-      //console.log('StorageKW::store2Level:: err=<',err,'>');
-      if (err) {
-        //console.log('StorageKW::store2Level:: err=<',err,'>');
-        if (err.notFound) {
-          db.put(store,1);
-          self.onUpdateStats(address,rank);
-        }
-      } else {
-        //console.log('StorageKW::store2Level:: store=<',store,'>');
-        //console.log('StorageKW::store2Level:: value=<',value,'>');
+    if(db.isOpen() === false) {
+      console.log('StorageKW::store2Level:: db.isOpen()=<',db.isOpen(),'>');
+    }
+    try {
+      await db.get(store);
+    } catch(err) {
+      if (err.notFound) {
+        await db.put(store,1);
+        self.onUpdateStats(address,rank);
       }
-    })
+    }
   }
   onUpdateStats(address,rank) {
     console.log('StorageKW::onUpdateStats:: address=<',address,'>');
     console.log('StorageKW::onUpdateStats:: rank=<',rank,'>');
-    const db = this.getStatsDB_(address);
-    this.saveCount2Level(db,rank);
-  }
-  saveCount2Level(db,rank) {
-    db.get(rank, (err, value) => {
-      //console.log('StorageKW::saveCount2Level:: err=<',err,'>');
-      if (err) {
-        //console.log('StorageKW::saveCount2Level:: err=<',err,'>');
-        if (err.notFound) {
-          db.put(rank,1);
-        }
-      } else {
-        //console.log('StorageKW::saveCount2Level:: rank=<',rank,'>');
-        //console.log('StorageKW::saveCount2Level:: value=<',value,'>');
-        const oldCount = parseInt(value);
-        db.put(rank,oldCount + 1);
+    try {
+      if(!this.stats_[address]) {
+        this.stats_[address] = require(`${this.repos_}/${address}/stats.json`);
       }
-    })    
+    } catch(e) {
+      this.stats_[address] = {};
+    }
+    const rankIndex = rank.toString();
+    if(this.stats_[address][rankIndex]) {
+      this.stats_[address][rankIndex] += 1;
+    } else {
+      this.stats_[address][rankIndex] = 1;
+    }
+    fs.writeFileSync(`${this.repos_}/${address}/stats.json`,JSON.stringify(this.stats_[address]));
   }
   
-  onFetch_(fetch,address,from) {
+  async onFetch_(fetch,address,from) {
     //console.log('StorageKW::onFetch_:: fetch=<',fetch,'>');
     //console.log('StorageKW::onFetch_:: address=<',address,'>');
     //console.log('StorageKW::onFetch_:: from=<',from,'>');
-    const db = this.getStatsDB_(address);
-    this.fetchStatsFromLevel(db,fetch,address,from);
-  }
-  fetchStatsFromLevel(db,fetch,address,from) {
-    const vStream = db.createReadStream();
+    try {
+      if(!this.stats_[address]) {
+        this.stats_[address] = require(`${this.repos_}/${address}/stats.json`);
+      }
+    } catch(err) {
+      console.log('StorageKW::onFetch_:: err=<',err,'>');
+      this.stats_[address] = {};
+    }
     const rankCount = [];
-    const self = this;
-    vStream.on('data', (data) => {
-      rankCount.push([parseInt(data.key),parseInt(data.value)]);
-    });
-    vStream.on('end', (data) => {
-      //console.log('StorageKW::fetchStatsFromLevel:: rankCount=<',rankCount,'>');
-      self.onFetchResource_(rankCount,fetch,address,from);
-    });
+    for(const rankIndex in this.stats_[address]) {
+      rankCount.push([parseInt(rankIndex),this.stats_[address][rankIndex]])
+    }
+    this.onFetchResource_(rankCount,fetch,address,from);
   }
   onFetchResource_(rankCount,fetch,address,from) {
     //console.log('StorageKW::onFetchResource_:: rankCount=<',rankCount,'>');
@@ -168,7 +162,7 @@ class StorageKW {
             resources.push(data.key);
             if(resources.length >= iConstItemOfOnce) {
               //console.log('StorageKW::fetchResourceFromLevel:: resources=<',resources,'>');
-              payload.resource = resources;
+              payload.content = resources;
               self.deliveryReply_(payload,from);
               return;
             }
@@ -178,7 +172,7 @@ class StorageKW {
         rs.on('end', () => {
           if(resources.length >= iConstItemOfOnce) {
             //console.log('StorageKW::fetchResourceFromLevel:: resources=<',resources,'>');
-            payload.resource = resources;
+            payload.content = resources;
             self.deliveryReply_(payload,from);
             return;
           }
@@ -189,7 +183,7 @@ class StorageKW {
         })
       } else {
         //console.log('StorageKW::fetchResourceFromLevel:: resources=<',resources,'>');
-        payload.resource = resources;
+        payload.content = resources;
         self.deliveryReply_(payload,from);
         return;
       }
@@ -217,6 +211,7 @@ class StorageKW {
       fs.mkdirSync(dbDir,{recursive :true});
     }
     const dbIndex =  `${address}/${rank}`;
+    //console.log('StorageKW::getResourceDB_:: this.dbs_=<',this.dbs_,'>');
     if(this.dbs_[dbIndex]) {
       const db = this.dbs_[dbIndex].db;
       this.dbs_[dbIndex].count = iConstCacheActiveCount;
@@ -225,23 +220,12 @@ class StorageKW {
       const dbPath = `${dbDir}/store.level`;
       const db = level(dbPath);
       this.dbs_[dbIndex] = { db:db,count:iConstCacheActiveCount};
-      return db;
-    }    
-  }
-  getStatsDB_(address) {
-     const dbIndex =  `${address}`;
-    if(this.dbs_[dbIndex]) {
-      const db = this.dbs_[dbIndex].db;
-      this.dbs_[dbIndex].count = iConstCacheActiveCount;
-      return db;
-    } else {
-      const dbPath = `${this.repos_}/${address}/stats.level`;
-      const db = level(dbPath);
-      this.dbs_[dbIndex] = { db:db,count:iConstCacheActiveCount};
+      db.on('ready',()=>{
+        console.log('StorageKW::getResourceDB_::ready!!!>');
+      });
       return db;
     }
   }
- 
 
   getAddress(content) {
     return this.utils_.calcAddress(content);
