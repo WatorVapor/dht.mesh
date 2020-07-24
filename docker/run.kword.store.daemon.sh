@@ -18,4 +18,4 @@ docker run -d \
   --memory=128M \
   --cpu-shares=256 \
   --name "${DOCKER_MAME}" \
-  node:lts node ./kwstore/StorageErmu.js
+  node:lts node ./kwordstore/StorageErmu.js
