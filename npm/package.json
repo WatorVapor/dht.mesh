@@ -1,0 +1,24 @@
+{
+  "name": "dht.mesh",
+  "version": "0.0.1",
+  "description": "dht base message",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WatorVapor/dht.mesh.git"
+  },
+  "keywords": [
+    "dht",
+    "p2p",
+    "messagequeue"
+  ],
+  "author": "watorvapor",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/WatorVapor/dht.mesh/issues"
+  },
+  "homepage": "https://github.com/WatorVapor/dht.mesh#readme"
+}
