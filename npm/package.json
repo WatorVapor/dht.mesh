@@ -4,7 +4,8 @@
   "description": "dht base message",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "./copy.sh"
   },
   "dependencies": {
     "base32.js": "^0.1.0",
@@ -15,7 +16,7 @@
     "redis": "^3.0.2",
     "tweetnacl": "^1.0.2",
     "tweetnacl-util": "^0.15.1"
-  }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/WatorVapor/dht.mesh.git"
