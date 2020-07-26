@@ -1,6 +1,6 @@
 {
   "name": "dht.mesh",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "dht base message",
   "main": "index.js",
   "scripts": {

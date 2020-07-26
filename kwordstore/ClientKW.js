@@ -74,7 +74,10 @@ class ClientKW {
     }
   }
   onReplyMsg_(reply) {
-    console.log('ClientKW::onReplyMsg_:: reply=<',reply,'>');
+    //console.log('ClientKW::onReplyMsg_:: reply=<',reply,'>');
+    if(typeof this.onData === 'function') {
+      this.onData(reply);
+    }
   }
 
   getAddress(content) {
