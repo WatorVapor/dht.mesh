@@ -17,3 +17,25 @@ const storeData = () => {
 setTimeout(storeData,1000);
 
 
+const fetchData = () => {
+  kw.fetch('empty') ;
+}
+setTimeout(fetchData,2000);
+
+kv.onData = (data) => {
+  console.log('kv.onData:: data=<',data,'>');
+}
+
+kw.onData = (data) => {
+  console.log('kw.onData:: data=<',data,'>'); 
+  if(data.content) {
+    fetchKValue(data.content);
+  }
+}
+
+const fetchKValue = (contents) => {
+  for(const content of contents) {
+    console.log('fetchKValue:: content=<',content,'>');
+    kv.fetch(content);
+  }
+}
