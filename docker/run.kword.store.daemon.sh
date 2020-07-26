@@ -3,7 +3,7 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 PARENT_DiR=$(dirname $SCRIPT_DIR)
 echo "SCRIPT_DIR:=${SCRIPT_DIR}"
 echo "PARENT_DiR:=${PARENT_DiR}"
-DOCKER_MAME=kWordstore.storage
+DOCKER_MAME=dht.kword.storage
 docker stop ${DOCKER_MAME}
 docker rm ${DOCKER_MAME}
 docker run -d \
@@ -18,4 +18,4 @@ docker run -d \
   --memory=128M \
   --cpu-shares=256 \
   --name "${DOCKER_MAME}" \
-  node:lts node ./kwordstore/StorageErmu.js
+  node:lts node ./kwordstore/StorageKW.js
