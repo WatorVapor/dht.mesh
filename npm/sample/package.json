@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dht.mesh": "0.0.4"
+    "dht.mesh": "0.0.7"
   }
 }
