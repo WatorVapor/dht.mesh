@@ -4,7 +4,7 @@ const CryptoJS = require('crypto-js');
 const bs32Option = { type: "crockford", lc: true };
 
 class DHTUtils {
-  constructor(daemonChannel) {
+  constructor() {
     console.log('DHTUtils::constructor');
   }
   calcAddress(content) {
