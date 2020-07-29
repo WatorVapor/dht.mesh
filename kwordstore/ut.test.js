@@ -13,29 +13,25 @@ const appendData = ()=> {
 
 const storeKeyWordUri = (keyword,uri,rank) => {
   const storeAddress = kws.getAddress(uri);
-  kws.append(keyword,storeAddress,rank,(info) => {
-    //console.log('kws.append:: info=<',info,'>');
-  });  
+  const tag = kws.append(keyword,storeAddress,rank); 
+  console.log('storeKeyWordUri:: tag=<',tag,'>');  
 }
 
 setTimeout(appendData,1000);
 
 const fetchData = ()=> {
-  kws.fetch('汉语',(resource) => {
-    //console.log('kws.fetch:: resource=<',resource,'>');
-    onFetchResult(resource);
-  });  
-  kws.fetch('汉语',3,(resource) => {
-    //console.log('kws.fetch:: resource=<',resource,'>');
-    onFetchResult(resource);
-  });  
-  kws.fetch('汉语',4,(resource) => {
-    //console.log('kws.fetch:: resource=<',resource,'>');
-    onFetchResult(resource);
-  });  
+  const tag1 = kws.fetch('汉语');
+  console.log('storeKeyWordUri:: tag1=<',tag1,'>');  
+  const tag2 = kws.fetch('汉语',3);  
+  console.log('storeKeyWordUri:: tag2=<',tag2,'>');  
+  const tag3 = kws.fetch('汉语',4);  
+  console.log('storeKeyWordUri:: tag3=<',tag3,'>');  
 }
 setTimeout(fetchData,2000);
 
-const onFetchResult = (result) => {
-  console.log('dht.onFetchResult:: result=<',result,'>');
+
+
+kws.onData = (data,tag)=> {
+  console.log('kws.onData:: data=<',data,'>');
+  console.log('kws.onData:: tag=<',tag,'>');
 }

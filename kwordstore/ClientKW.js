@@ -22,31 +22,37 @@ class ClientKW {
     //console.log('ClientKW::append:: rank=<',rank,'>');
     const address = this.getAddress(keyword);
     //console.log('ClientKW::append:: address=<',address,'>');
+    const tag = this.utils_.random();
     const msgObj = {
       kw: {
         word:keyword,
         store:contentAddress,
         rank:rank
-      }
+      },
+      tag:tag
     }
     this.dht_.spread(address,msgObj,(infoSpread)=>{
       console.log('ClientKW::append:: infoSpread=<',infoSpread,'>');
     });
+    return tag;
   }
   fetch(keyword,offset) {
     //console.log('ClientKW::append:: keyword=<',keyword,'>');
     const address = this.getAddress(keyword);
     //console.log('ClientKW::append:: address=<',address,'>');
+    const tag = this.utils_.random();
     const msgObj = {
       kw: {
         fetch:{
           offset:offset
-        }
+        },
+        tag:tag
       }
     }
     this.dht_.spread(address,msgObj,(infoSpread)=>{
       console.log('ClientKW::append:: infoSpread=<',infoSpread,'>');
     });
+    return tag;
   }
   
   onRemoteMsg(msg) {
@@ -64,19 +70,19 @@ class ClientKW {
   onLoopBackMsg_(loopbak) {
     //console.log('ClientKW::onLoopBackMsg_:: loopbak=<',loopbak,'>');
     if(loopbak.kwR) {
-      this.onReplyMsg_(loopbak.kwR);
+      this.onReplyMsg_(loopbak.kwR,loopbak.tag);
     }
   }
   onDeliveryMsg_(payload) {
     //console.log('ClientKW::onDeliveryMsg_:: payload=<',payload,'>');
     if(payload.kwR) {
-      this.onReplyMsg_(payload.kwR);
+      this.onReplyMsg_(payload.kwR,payload.tag);
     }
   }
-  onReplyMsg_(reply) {
+  onReplyMsg_(reply,tag) {
     //console.log('ClientKW::onReplyMsg_:: reply=<',reply,'>');
     if(typeof this.onData === 'function') {
-      this.onData(reply);
+      this.onData(reply,tag);
     }
   }
 

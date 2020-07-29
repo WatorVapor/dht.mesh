@@ -40,16 +40,16 @@ class StorageKW {
     //console.log('StorageKW::onSpreadMsg_:: payload=<',payload,'>');
     //console.log('StorageKW::onSpreadMsg_:: address=<',address,'>');
     if(payload.kw && payload.kw.store) {
-      this.onStore_(payload.kw.word,payload.kw.store,payload.kw.rank,address)
+      this.onStore_(payload.kw.word,payload.kw.store,payload.kw.rank,address,payload.kw.tag)
     } else if (payload.kw && payload.kw.fetch) {
-      this.onFetch_(payload.kw.fetch,address,from);
+      this.onFetch_(payload.kw.fetch,address,from,payload.kw.tag);
     } else if (payload.kv) {
       // empty.
     } else {
       console.log('StorageKW::onSpreadMsg_:: payload=<',payload,'>');
     }
   }
-  onStore_(word,store,rank,address) {
+  onStore_(word,store,rank,address,tag) {
     //console.log('StorageKW::onStore_:: word=<',word,'>');
     //console.log('StorageKW::onStore_:: store=<',store,'>');
     //console.log('StorageKW::onStore_:: rank=<',rank,'>');
@@ -60,6 +60,8 @@ class StorageKW {
   async store2Level(db,store,address,rank) {
     const self = this;
     if(db.isOpen() === false) {
+      console.log('StorageKW::store2Level:: db.isOpen()=<',db.isOpen(),'>');
+    } else {
       console.log('StorageKW::store2Level:: db.isOpen()=<',db.isOpen(),'>');
     }
     try {
@@ -90,10 +92,11 @@ class StorageKW {
     fs.writeFileSync(`${this.repos_}/${address}/stats.json`,JSON.stringify(this.stats_[address]));
   }
   
-  async onFetch_(fetch,address,from) {
+  async onFetch_(fetch,address,from,tag) {
     //console.log('StorageKW::onFetch_:: fetch=<',fetch,'>');
     //console.log('StorageKW::onFetch_:: address=<',address,'>');
     //console.log('StorageKW::onFetch_:: from=<',from,'>');
+    //console.log('StorageKW::onFetch_:: tag=<',tag,'>');
     try {
       if(!this.stats_[address]) {
         this.stats_[address] = require(`${this.repos_}/${address}/stats.json`);
@@ -106,9 +109,9 @@ class StorageKW {
     for(const rankIndex in this.stats_[address]) {
       rankCount.push([parseInt(rankIndex),this.stats_[address][rankIndex]])
     }
-    this.onFetchResource_(rankCount,fetch,address,from);
+    this.onFetchResource_(rankCount,fetch,address,from,tag);
   }
-  onFetchResource_(rankCount,fetch,address,from) {
+  onFetchResource_(rankCount,fetch,address,from,tag) {
     //console.log('StorageKW::onFetchResource_:: rankCount=<',rankCount,'>');
     rankCount.sort((a,b)=>{return b[0] -a[0]});
     //console.log('StorageKW::onFetchResource_:: rankCount=<',rankCount,'>');
@@ -144,10 +147,10 @@ class StorageKW {
       total:sumFromHigh,
       finnish:(itemFromOffset + iConstItemOfOnce > sumFromHigh)
     }
-    this.fetchResourceFromLevel(address,fetchRank,skipFirstDbCounter,deliveryPayload,from);
+    this.fetchResourceFromLevel(address,fetchRank,skipFirstDbCounter,deliveryPayload,from,tag);
   }
   
-  fetchResourceFromLevel(address,fetchRank,skipFirst,payload,from) {
+  fetchResourceFromLevel(address,fetchRank,skipFirst,payload,from,tag) {
     //console.log('StorageKW::fetchResourceFromLevel:: fetchRank=<',fetchRank,'>');
     //console.log('StorageKW::fetchResourceFromLevel:: skipFirst=<',skipFirst,'>');
     let indexRank = 0;
@@ -165,7 +168,7 @@ class StorageKW {
             if(resources.length >= iConstItemOfOnce) {
               //console.log('StorageKW::fetchResourceFromLevel:: resources=<',resources,'>');
               payload.content = resources;
-              self.deliveryReply_(payload,from);
+              self.deliveryReply_(payload,from,tag);
               return;
             }
           }
@@ -175,7 +178,7 @@ class StorageKW {
           if(resources.length >= iConstItemOfOnce) {
             //console.log('StorageKW::fetchResourceFromLevel:: resources=<',resources,'>');
             payload.content = resources;
-            self.deliveryReply_(payload,from);
+            self.deliveryReply_(payload,from,tag);
             return;
           }
           indexRank++;
@@ -186,7 +189,7 @@ class StorageKW {
       } else {
         //console.log('StorageKW::fetchResourceFromLevel:: resources=<',resources,'>');
         payload.content = resources;
-        self.deliveryReply_(payload,from);
+        self.deliveryReply_(payload,from,tag);
         return;
       }
     }
@@ -194,11 +197,12 @@ class StorageKW {
       readResouce();
     },0)
   }
-  deliveryReply_(payload,from) {
+  deliveryReply_(payload,from,tag) {
     //console.log('StorageKW::deliveryReply_:: payload=<',payload,'>');
     //console.log('StorageKW::deliveryReply_:: from=<',from,'>');
     //console.log('StorageKW::deliveryReply_:: this.id=<',this.id,'>');
-    const kwPayload = {kwR:payload};
+    //console.log('StorageKW::deliveryReply_:: tag=<',tag,'>');
+    const kwPayload = {kwR:payload,tag:tag};
     if(this.id !== from) {
       this.dht_.delivery(from,kwPayload);
     } else {

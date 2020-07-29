@@ -26,7 +26,7 @@ class StorageKV {
   onRemoteMsg(msg) {
     //console.log('StorageKV::onRemoteMsg:: msg=<',msg,'>');
     if(msg.spread && msg.spread.payload && msg.spread.payload.kv) {
-      this.onSpreadMsg_(msg.spread.payload.kv,msg.address,msg.from);
+      this.onSpreadMsg_(msg.spread.payload.kv,msg.address,msg.from,msg.spread.payload.tag);
     } else if(msg.spread && msg.spread.payload && msg.spread.payload.kw) {
       // empty...
     } else if(msg.delivery && msg.delivery.payload && msg.delivery.payload.kw) {
@@ -39,18 +39,18 @@ class StorageKV {
       console.log('StorageKV::onRemoteMsg:: msg=<',msg,'>');
     }
   }
-  onSpreadMsg_(kvReq,address,from) {
+  onSpreadMsg_(kvReq,address,from,tag) {
     //console.log('StorageKV::onSpreadMsg_:: kvReq=<',kvReq,'>');
     //console.log('StorageKV::onSpreadMsg_:: address=<',address,'>');
     if(kvReq.store) {
-      this.onStore_(kvReq.store,address)
+      this.onStore_(kvReq.store,address,tag)
     } else if (kvReq.fetch) {
-      this.onFetch_(kvReq.fetch,address,from);
+      this.onFetch_(kvReq.fetch,address,from,tag);
     } else {
       console.log('StorageKV::onSpreadMsg_:: kvReq=<',kvReq,'>');
     }
   }
-  async onStore_(content,address) {
+  async onStore_(content,address,tag) {
     //console.log('StorageKV::onStore_:: content=<',content,'>');
     //console.log('StorageKV::onStore_:: address=<',address,'>');
     const db = this.getLevelDB_(address);
@@ -66,7 +66,7 @@ class StorageKV {
     }
   }
   
-  async onFetch_(fetch,address,from) {
+  async onFetch_(fetch,address,from,tag) {
     //console.log('StorageKV::onFetch_:: fetch=<',fetch,'>');
     //console.log('StorageKV::onFetch_:: address=<',address,'>');
     //console.log('StorageKV::onFetch_:: from=<',from,'>');
@@ -81,13 +81,13 @@ class StorageKV {
     } catch(err) {
       console.log('StorageKV::onFetch_:: err=<',err,'>');
     }
-    this.deliveryReply_(deliveryPayload,from);
+    this.deliveryReply_(deliveryPayload,from,tag);
   }
-  deliveryReply_(payload,from) {
+  deliveryReply_(payload,from,tag) {
     //console.log('StorageKV::deliveryReply_:: payload=<',payload,'>');
     //console.log('StorageKV::deliveryReply_:: from=<',from,'>');
     //console.log('StorageKV::deliveryReply_:: this.id=<',this.id,'>');
-    const kvPayload = {kvR:payload};
+    const kvPayload = {kvR:payload,tag:tag};
     if(this.id !== from) {
       this.dht_.delivery(from,kvPayload);
     } else {

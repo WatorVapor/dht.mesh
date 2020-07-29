@@ -2,7 +2,8 @@
 const ClientKV = require('./ClientKV.js');
 const kv = new ClientKV();
 
-kv.onData = (data) => {
+kv.onData = (data,tag) => {
+  console.log('onData:: tag=<',tag,'>');
   console.log('onData:: data=<',data,'>');
   const address = kv.getAddress(data.content);
   console.log('onData:: address=<',address,'>');
@@ -24,7 +25,7 @@ const storeKeyWordUri = (keyword,uri,rank) => {
     uri:uri,
     rank:rank
   };
-  const address = kv.store(contents);
+  const address = kv.store(contents).address;
   console.log('storeKeyWordUri:: address=<',address,'>');
   savedAddress.push(address);
 }
@@ -33,7 +34,8 @@ setTimeout(storeData,1000);
 
 const fetchData = ()=> {
   for( const address of savedAddress) {
-    kv.fetch(address);
+    const tag = kv.fetch(address).tag;
+    console.log('fetchData:: tag=<',tag,'>');
   }
 }
 setTimeout(fetchData,2000);
