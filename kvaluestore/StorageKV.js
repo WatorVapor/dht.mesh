@@ -27,6 +27,10 @@ class StorageKV {
     //console.log('StorageKV::onRemoteMsg:: msg=<',msg,'>');
     if(msg.spread && msg.spread.payload && msg.spread.payload.kv) {
       this.onSpreadMsg_(msg.spread.payload.kv,msg.address,msg.from);
+    } else if(msg.spread && msg.spread.payload && msg.spread.payload.kw) {
+      // empty...
+    } else if(msg.delivery && msg.delivery.payload && msg.delivery.payload.kw) {
+      // empty...
     } else if(msg.delivery && msg.delivery.payload && msg.delivery.payload.kv) {
       // empty...
     } else if(msg.loopback) {

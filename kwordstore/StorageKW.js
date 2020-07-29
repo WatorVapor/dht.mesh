@@ -43,6 +43,8 @@ class StorageKW {
       this.onStore_(payload.kw.word,payload.kw.store,payload.kw.rank,address)
     } else if (payload.kw && payload.kw.fetch) {
       this.onFetch_(payload.kw.fetch,address,from);
+    } else if (payload.kv) {
+      // empty.
     } else {
       console.log('StorageKW::onSpreadMsg_:: payload=<',payload,'>');
     }
