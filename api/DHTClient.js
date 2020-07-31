@@ -15,8 +15,8 @@ const iConstMaxResultsOnce = 16;
 class DHTClient {
   constructor(daemonChannel) {
     console.log('DHTClient::constructor');
-    this.createDaemonChannel_(daemonChannel);
     this.apiChannel_ = this.calcCallBackHash_(this);
+    this.createDaemonChannel_(daemonChannel);
     this.cb_ = {};
     this.cbSub_ = {};
   }
@@ -101,7 +101,7 @@ class DHTClient {
         console.log('DHTClient::onMsg_ jMsg=<',jMsg,'>');
       }
     } catch(e) {
-      console.log('DaemonRedis::onMsg_::::e=<',e,'>');
+      console.log('DHTClient::onMsg_::::e=<',e,'>');
     }
   }
   writeData_(msg) {
@@ -137,6 +137,7 @@ class DHTClient {
   }
   
   onPeerInfo_(jMsg) {
+    console.log('DHTClient::onPeerInfo_ jMsg=<',jMsg,'>');
     if( typeof this.cb_[jMsg.cb] === 'function') {
       this.cb_[jMsg.cb](jMsg.peerInfo);
     } else {
@@ -194,9 +195,11 @@ class DHTClient {
     const self = this;
     this.subscriber_.on('ready',() => {
       console.log('DHTClient::createDaemonChannel_ subscriber_ ready');
-      this.subscriber_.subscribe(this.daemonChannel_);
+      self.subscriber_.subscribe(self.apiChannel_);
     });
     this.subscriber_.on('message',(channel,message) => {
+      //console.log('DHTClient::createDaemonChannel_ subscriber_ channel=<',channel,'>');
+      //console.log('DHTClient::createDaemonChannel_ subscriber_ message=<',message,'>');
       self.onMsg_(message);
     });
     this.subscriber_.on('error', (error) => {

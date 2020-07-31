@@ -17,8 +17,12 @@ class StorageKW {
     this.stats_ = {};
     this.dht_.peerInfo( (peerInfo)=> {
       console.log('StorageKW::.constructor:: peerInfo=<',peerInfo,'>');
-      self.repos_ = `${peerInfo.reps.dht}/kword.store`;
-      self.id = peerInfo.id;
+      if(peerInfo.reps && peerInfo.id) {
+        self.repos_ = `${peerInfo.reps.dht}/kword.store`;
+        self.id = peerInfo.id;
+      } else {
+        
+      }
     });
     this.dht_.subscribe( ( remoteMsg ) => {
       self.onRemoteMsg(remoteMsg);

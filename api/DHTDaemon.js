@@ -59,7 +59,7 @@ class DHTDaemon {
 
   async onPeerInfo_ (jMsg){
     const peer = this.dht_.peerInfo();
-    //console.log('DHTDaemon::onPeerInfo_:: peer=<',peer,'>');
+    console.log('DHTDaemon::onPeerInfo_:: peer=<',peer,'>');
     const peerInfoResp = {
       peerInfo:peer,
       cb:jMsg.cb
