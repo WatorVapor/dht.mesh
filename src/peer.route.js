@@ -49,7 +49,7 @@ class PeerRoute {
     //console.log('PeerRoute::calcContent peerMin=<',peerMin,'>');
     //console.log('PeerRoute::calcContent distanceMax=<',distanceMax,'>');
     //console.log('PeerRoute::calcContent peerMax=<',peerMax,'>');
-    console.log('PeerRoute::calcContent this.bucket_.trapBuckets_=<',this.bucket_.trapBuckets_,'>');
+    //console.log('PeerRoute::calcContent this.bucket_.trapBuckets_=<',this.bucket_.trapBuckets_,'>');
     return {min:peerMin,max:peerMax};
   }
 

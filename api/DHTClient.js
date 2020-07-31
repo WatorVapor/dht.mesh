@@ -9,25 +9,14 @@ const CryptoJS = require('crypto-js');
 const bs32Option = { type: "crockford", lc: true };
 
 const DefaultDaemonListenChannel = 'dht.mesh.api.daemon.listen';
-const iConstMaxResultsOnce = 20;
+const iConstMaxResultsOnce = 16;
 
 
 class DHTClient {
   constructor(daemonChannel) {
     console.log('DHTClient::constructor');
-    if(daemonChannel) {
-      this.daemonChannel_ = daemonChannel;
-    } else {
-      this.daemonChannel_ = DefaultDaemonListenChannel;
-    }
+    this.createDaemonChannel_(daemonChannel);
     this.apiChannel_ = this.calcCallBackHash_(this);
-    this.subscriber_ = redis.createClient(redisOption);
-    this.subscriber_.subscribe(this.apiChannel_);    
-    const self = this;
-     this.subscriber_.on('message',(channel,message) => {
-      self.onMsg_(message);
-    });
-    this.publisher_ = redis.createClient(redisOption);   
     this.cb_ = {};
     this.cbSub_ = {};
   }
@@ -195,6 +184,38 @@ class DHTClient {
     }
   }
   
+  createDaemonChannel_(daemonChannel) {
+    if(daemonChannel) {
+      this.daemonChannel_ = daemonChannel;
+    } else {
+      this.daemonChannel_ = DefaultDaemonListenChannel;
+    }
+    this.subscriber_ = redis.createClient(redisOption);
+    const self = this;
+    this.subscriber_.on('ready',() => {
+      console.log('DHTClient::createDaemonChannel_ subscriber_ ready');
+      this.subscriber_.subscribe(this.daemonChannel_);
+    });
+    this.subscriber_.on('message',(channel,message) => {
+      self.onMsg_(message);
+    });
+    this.subscriber_.on('error', (error) => {
+      console.log('DHTClient::createDaemonChannel_ subscriber_ error=<',error,'>');
+      setTimeout(()=>{
+        self.createDaemonChannel_();
+      },1000);
+    });
+    this.publisher_ = redis.createClient(redisOption);       
+    this.subscriber_.on('ready',() => {
+      console.log('DHTClient::createDaemonChannel_ publisher ready');
+    })
+    this.publisher_.on('error', (error) => {
+      console.log('DHTClient::createDaemonChannel_ publisher_ error=<',error,'>');
+      setTimeout(()=>{
+        self.createDaemonChannel_();
+      },1000);
+    });    
+  }
 }
 
 module.exports = DHTClient;

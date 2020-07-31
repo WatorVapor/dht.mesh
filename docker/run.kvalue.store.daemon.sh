@@ -15,7 +15,8 @@ docker run -d \
   -u $(id -u $USER):$(id -g $USER) \
   -w ${PARENT_DiR} \
   --net host \
-  --memory=128M \
+  --memory=512M \
   --cpu-shares=256 \
   --name "${DOCKER_MAME}" \
+  --restart=always \
   node:lts node ./kvaluestore/StorageKV.js

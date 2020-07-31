@@ -5,21 +5,11 @@ const redisOption = {
 };
 const DefaultDaemonListenChannel = 'dht.mesh.api.daemon.listen';
 class DHTDaemon {
-  constructor(dht,apiChannel) {
+  constructor(dht,clientChannel) {
     this.dht_ = dht;
+    this.createDaemonChannel_(clientChannel)
     this.remoteSubChannels_ = [];
-    this.subscriber_ = redis.createClient(redisOption);
-    if(apiChannel) {
-      this.subscriber_.subscribe(apiChannel);
-    } else {
-      this.subscriber_.subscribe(DefaultDaemonListenChannel);
-    }
     const self = this;
-    this.subscriber_.on('message',async (channel,message) => {
-      await self.onData_(message);
-    });
-    this.publisher_ = redis.createClient(redisOption);
-    
     this.dht_.onRemoteSpreed = (msg)=> {
       self.onRemoteSpread_(msg);
     }
@@ -123,8 +113,6 @@ class DHTDaemon {
       console.log('DHTDaemon::onLoopbackData_::::e=<',e,'>');
     }
   };
-
-
   onSubscribeData_(jMsg) {
     //console.log('DHTDaemon::onSubscribeData_::jMsg=<',jMsg,'>');
     this.remoteSubChannels_.push(jMsg.channel);
@@ -149,6 +137,38 @@ class DHTDaemon {
     }
   }
 
+  createDaemonChannel_(clientChannel) {
+    this.subscriber_ = redis.createClient(redisOption);
+    const self = this;
+    this.subscriber_.on('ready',() => {
+      console.log('DHTDaemon::createDaemonChannel_ subscriber_ ready');
+      if(clientChannel) {
+        self.subscriber_.subscribe(clientChannel);
+      } else {
+        self.subscriber_.subscribe(DefaultDaemonListenChannel);
+      }
+    })
+    this.subscriber_.on('message',(channel,message) => {
+      self.onData_(message);
+    });    
+    this.subscriber_.on('error', (error) => {
+      console.log('DHTDaemon::createDaemonChannel_ subscriber_ error=<',error,'>');
+      setTimeout(()=>{
+        self.createDaemonChannel_(apiChannel);
+      },1000);
+    });
+    
+    this.publisher_ = redis.createClient(redisOption);
+    this.subscriber_.on('ready',() => {
+      console.log('DHTDaemon::createDaemonChannel_ publisher ready');
+    })
+    this.publisher_.on('error', (error) => {
+      console.log('DHTDaemon::createDaemonChannel_ publisher_ error=<',error,'>');
+      setTimeout(()=>{
+        self.createDaemonChannel_();
+      },1000);
+    });
+ }
 
 };
 
