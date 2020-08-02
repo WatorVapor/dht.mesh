@@ -8,13 +8,14 @@ class ClientKV {
   constructor() {
     this.dht_ = new DHTClient();
     this.utils_ = new DHTUtils();
-    this.dht_.peerInfo( (peerInfo)=> {
-      console.log('ClientKV::.constructor:: peerInfo=<',peerInfo,'>');
-    });
     const self = this;
-    this.dht_.subscribe( ( remoteMsg ) => {
-      self.onRemoteMsg(remoteMsg);
-    });
+    this.dht_.OnConnected = ()=> {
+      console.log('StorageKW::constructor::OnConnected');
+      self.connectDHT_();
+    }
+    this.dht_.OnDisConnected = ()=> {
+      console.log('StorageKW::constructor::OnDisConnected');
+    }
   }
   store(content) {
     //console.log('ClientKV::store:: content=<',content,'>');
@@ -81,6 +82,17 @@ class ClientKV {
   getAddress(content) {
     return this.utils_.calcAddress(content);
   }
+
+  connectDHT_() {
+    this.dht_.peerInfo( (peerInfo)=> {
+      console.log('ClientKV::.constructor:: peerInfo=<',peerInfo,'>');
+    });
+    const self = this;
+    this.dht_.subscribe( ( remoteMsg ) => {
+      self.onRemoteMsg(remoteMsg);
+    });
+  }
+
 };
 
 module.exports = ClientKV;
