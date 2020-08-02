@@ -14,16 +14,13 @@ class StorageKV {
     this.utils_ = new DHTUtils();
     this.dbs_ = {};
     const self = this;
-    this.dht_.peerInfo( (peerInfo)=> {
-      console.log('StorageKV::.constructor:: peerInfo=<',peerInfo,'>');
-      if(peerInfo.reps && peerInfo.id) {
-        self.repos_ = `${peerInfo.reps.dht}/kvalue.store`;
-        self.id = peerInfo.id;
-      }
-    });
-    this.dht_.subscribe( ( remoteMsg ) => {
-      self.onRemoteMsg(remoteMsg);
-    });
+    this.dht_.OnConnected = ()=> {
+      console.log('StorageKV::constructor::OnConnected');
+      self.connectDHT_();
+    }
+    this.dht_.OnDisConnected = ()=> {
+      console.log('StorageKV::constructor::OnDisConnected');
+    }
   }
   onRemoteMsg(msg) {
     //console.log('StorageKV::onRemoteMsg:: msg=<',msg,'>');
@@ -115,6 +112,20 @@ class StorageKV {
       this.dbs_[dbIndex] = { db:db,count:iConstCacheActiveCount};
       return db;
     }    
+  }
+  
+  connectDHT_() {
+    const self = this;
+    this.dht_.peerInfo( (peerInfo)=> {
+      console.log('StorageKV::.constructor:: peerInfo=<',peerInfo,'>');
+      if(peerInfo.reps && peerInfo.id) {
+        self.repos_ = `${peerInfo.reps.dht}/kvalue.store`;
+        self.id = peerInfo.id;
+      }
+    });
+    this.dht_.subscribe( ( remoteMsg ) => {
+      self.onRemoteMsg(remoteMsg);
+    });    
   }
 };
 

@@ -13,20 +13,15 @@ class StorageKW {
     this.dht_ = new DHTClient();
     this.utils_ = new DHTUtils();
     this.dbs_ = {};
-    const self = this;
     this.stats_ = {};
-    this.dht_.peerInfo( (peerInfo)=> {
-      console.log('StorageKW::.constructor:: peerInfo=<',peerInfo,'>');
-      if(peerInfo.reps && peerInfo.id) {
-        self.repos_ = `${peerInfo.reps.dht}/kword.store`;
-        self.id = peerInfo.id;
-      } else {
-        
-      }
-    });
-    this.dht_.subscribe( ( remoteMsg ) => {
-      self.onRemoteMsg(remoteMsg);
-    });
+    const self = this;
+    this.dht_.OnConnected = ()=> {
+      console.log('StorageKW::constructor::OnConnected');
+      self.connectDHT_();
+    }
+    this.dht_.OnDisConnected = ()=> {
+      console.log('StorageKW::constructor::OnDisConnected');
+    }
   }
   onRemoteMsg(msg) {
     //console.log('StorageKW::onRemoteMsg:: msg=<',msg,'>');
@@ -239,6 +234,23 @@ class StorageKW {
 
   getAddress(content) {
     return this.utils_.calcAddress(content);
+  }
+  
+  
+  connectDHT_() {
+    const self = this;
+    this.dht_.peerInfo( (peerInfo)=> {
+      console.log('StorageKW::.constructor:: peerInfo=<',peerInfo,'>');
+      if(peerInfo.reps && peerInfo.id) {
+        self.repos_ = `${peerInfo.reps.dht}/kword.store`;
+        self.id = peerInfo.id;
+      } else {
+        
+      }
+    });
+    this.dht_.subscribe( ( remoteMsg ) => {
+      self.onRemoteMsg(remoteMsg);
+    });    
   }
 };
 
