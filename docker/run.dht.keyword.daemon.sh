@@ -19,4 +19,4 @@ docker run -d \
   --cpu-shares=256 \
   --name "${DOCKER_MAME}" \
   --restart=always \
-  node:lts node ./cli/daemon.js
+  node:lts node ./cli/daemon.kword.js
