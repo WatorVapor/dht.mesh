@@ -4,7 +4,6 @@ const DHTUtils = require('../api/DHTUtils.js');
 const fs = require('fs');
 const level = require('level');
 
-const bs32Option = { type: "crockford", lc: true };
 const iConstCacheActiveCount = 1024;
 const iConstItemOfOnce = 16;
 
@@ -21,6 +20,9 @@ class StorageKV {
     this.dht_.OnDisConnected = ()=> {
       console.log('StorageKV::constructor::OnDisConnected');
     }
+    setInterval(()=>{
+      self.CheckCachedHandler_();
+    }.1000);
   }
   onRemoteMsg(msg) {
     //console.log('StorageKV::onRemoteMsg:: msg=<',msg,'>');
@@ -126,6 +128,9 @@ class StorageKV {
     this.dht_.subscribe( ( remoteMsg ) => {
       self.onRemoteMsg(remoteMsg);
     });    
+  }
+  CheckCachedHandler_() {
+    console.log('StorageKV::CheckCachedHandler_:: this.dbs_=<',this.dbs_,'>');
   }
 };
 

@@ -4,7 +4,6 @@ const DHTUtils = require('../api/DHTUtils.js');
 const fs = require('fs');
 const level = require('level');
 
-const bs32Option = { type: "crockford", lc: true };
 const iConstCacheActiveCount = 100;
 const iConstItemOfOnce = 16;
 
