@@ -47,6 +47,8 @@ class DHTDaemon {
           await this.onLoopbackData_(jMsg);
         } else if(jMsg.subscribe) {
           this.onSubscribeData_(jMsg);
+        } else if(jMsg.ping) {
+          this.onPing_(jMsg);
         } else {
           console.log('DHTDaemon::onData_::jMsg=<',jMsg,'>');
         }
@@ -168,6 +170,18 @@ class DHTDaemon {
         self.createDaemonChannel_();
       },1000);
     });
+ }
+ 
+ onPing_(jMsg) {
+    const meshResp = {
+      pong:true
+    };
+    const RespBuff = Buffer.from(JSON.stringify(meshResp),'utf-8');
+    try {
+      this.publisher_.publish(jMsg.channel,RespBuff);
+    } catch(e) {
+      console.log('DHTDaemon::onPing_::::e=<',e,'>');
+    }   
  }
 
 };

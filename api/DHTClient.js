@@ -18,7 +18,13 @@ class DHTClient {
     this.apiChannel_ = this.calcCallBackHash_(this);
     this.createDaemonChannel_(daemonChannel);
     this.cb_ = {};
+    this.dAlive_ = true;
+    this.disconnected_ = 1;
     this.cbSub_ = {};
+    const self = this;
+    setInterval(()=>{
+      self.keepAlive_();
+    },1000);
   }
   peerInfo(cb) {
     console.log('DHTClient::peerInfo');
@@ -94,6 +100,8 @@ class DHTClient {
           this.onLoopbackMsg_(jMsg);
         } else if(jMsg.spread) {
           /// empty
+        } else if(jMsg.pong) {
+          this.onPong_(jMsg);
         } else {
           console.log('DHTClient::onMsg_ jMsg=<',jMsg,'>');
         }
@@ -218,6 +226,39 @@ class DHTClient {
         self.createDaemonChannel_();
       },1000);
     });    
+  }
+  
+  keepAlive_() {
+    //console.log('DHTClient::keepAlive_');
+    if(this.dAlive_ === false) {
+      this.onDaemonDisConnected_();
+    }
+    const msgMesh = {
+      ping:true
+    };
+    this.writeData_(msgMesh);
+    this.dAlive_ = false;
+  }
+  onPong_(jMsg) {
+    //console.log('DHTClient::onPong_ jMsg=<',jMsg,'>');
+    this.dAlive_ = true;
+    if(this.disconnected_ > 0) {
+      this.onDaemonConnected_();
+    }
+  }
+  onDaemonDisConnected_() {
+    //console.log('DHTClient::onDaemonDisConnected_');
+    this.disconnected_++;
+    if(typeof this.OnDisConnected === 'function' && this.disconnected_ === 1) {
+      this.OnDisConnected();
+    }
+  }
+  onDaemonConnected_() {
+    //console.log('DHTClient::onDaemonConnected_');
+    this.disconnected_ = 0;
+    if(typeof this.OnConnected === 'function') {
+      this.OnConnected();
+    }
   }
 }
 

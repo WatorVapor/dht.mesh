@@ -37,8 +37,11 @@ dht.subscribe((remoteMsg,from) => {
   console.log('dht.subscribe:: remoteMsg=<',remoteMsg,'>');
   console.log('dht.subscribe:: from=<',from,'>');
 });
-dht.OnConnected(() => {
+dht.OnConnected = () => {
   console.log('dht.OnConnected:: ');
-});
-setTimeout(meshMsg,1000);
+};
+dht.OnDisConnected = () => {
+  console.log('dht.OnDisConnected:: ');
+};
+setInterval(meshMsg,1000);
 
