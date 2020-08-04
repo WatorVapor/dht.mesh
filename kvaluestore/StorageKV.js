@@ -22,7 +22,7 @@ class StorageKV {
     }
     setInterval(()=>{
       self.CheckCachedHandler_();
-    }.1000);
+    },1000);
   }
   onRemoteMsg(msg) {
     //console.log('StorageKV::onRemoteMsg:: msg=<',msg,'>');

@@ -21,6 +21,9 @@ class StorageKW {
     this.dht_.OnDisConnected = ()=> {
       console.log('StorageKW::constructor::OnDisConnected');
     }
+    setInterval(()=>{
+      self.CheckCachedHandler_();
+    },1000);
   }
   onRemoteMsg(msg) {
     //console.log('StorageKW::onRemoteMsg:: msg=<',msg,'>');
@@ -251,6 +254,10 @@ class StorageKW {
       self.onRemoteMsg(remoteMsg);
     });    
   }
+  CheckCachedHandler_() {
+    console.log('StorageKW::CheckCachedHandler_:: this.dbs_=<',this.dbs_,'>');
+  }
+
 };
 
 const daemon = new StorageKW();
