@@ -3,7 +3,7 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 PARENT_DiR=$(dirname $SCRIPT_DIR)
 echo "SCRIPT_DIR:=${SCRIPT_DIR}"
 echo "PARENT_DiR:=${PARENT_DiR}"
-DOCKER_MAME=dht.daemon
+DOCKER_MAME=dht.daemon.kvalue
 docker stop ${DOCKER_MAME}
 docker rm ${DOCKER_MAME}
 docker run -d \

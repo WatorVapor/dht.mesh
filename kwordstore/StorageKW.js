@@ -4,7 +4,8 @@ const DHTUtils = require('../api/DHTUtils.js');
 const fs = require('fs');
 const level = require('level');
 
-const iConstCacheActiveCount = 100;
+const iConstCacheActiveCount = 10;
+const iConstCacheMaxSize = 1024;
 const iConstItemOfOnce = 16;
 
 class StorageKW {
@@ -23,7 +24,7 @@ class StorageKW {
     }
     setInterval(()=>{
       self.CheckCachedHandler_();
-    },1000);
+    },1000*10);
   }
   onRemoteMsg(msg) {
     //console.log('StorageKW::onRemoteMsg:: msg=<',msg,'>');
@@ -255,9 +256,22 @@ class StorageKW {
     });    
   }
   CheckCachedHandler_() {
-    console.log('StorageKW::CheckCachedHandler_:: this.dbs_=<',this.dbs_,'>');
+    const dbIndexs = Object.keys(this.dbs_);
+    //console.log('StorageKW::CheckCachedHandler_:: dbIndexs.length=<',dbIndexs.length,'>');
+    let clearOld = false;
+    if(dbIndexs.length > iConstCacheMaxSize) {
+      clearOld = true;
+    }
+    for(const dbIndex of dbIndexs) {
+      //console.log('StorageKW::CheckCachedHandler_:: dbIndex=<',dbIndex,'>');
+      const dbStats = this.dbs_[dbIndex];
+      //console.log('StorageKW::CheckCachedHandler_:: dbStats.count=<',dbStats.count,'>');
+      dbStats.count--;
+      if(clearOld && dbStats.count < 0) {
+        delete this.dbs_[dbIndex];
+      }
+    }
   }
-
 };
 
 const daemon = new StorageKW();
