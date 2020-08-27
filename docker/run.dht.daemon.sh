@@ -16,7 +16,7 @@ docker run -d \
   -w ${PARENT_DiR} \
   --net host \
   --memory=512M \
-  --cpu-shares=256 \
+  --cpu-shares=1024 \
   --name "${DOCKER_MAME}" \
   --restart=always \
   node:lts node ./cli/daemon.js
