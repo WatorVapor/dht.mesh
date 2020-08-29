@@ -8,5 +8,8 @@
     "redis": "^3.0.2",
     "tweetnacl": "^1.0.2",
     "tweetnacl-util": "^0.15.1"
+  },
+  "devDependencies": {
+    "@ardatan/node-memwatch": "^1.0.8"
   }
 }

@@ -14,6 +14,7 @@ class StorageKW {
     this.utils_ = new DHTUtils();
     this.dbs_ = {};
     this.stats_ = {};
+    this.tagMarks_ = {};
     const self = this;
     this.dht_.OnConnected = ()=> {
       console.log('StorageKW::constructor::OnConnected');
@@ -200,10 +201,14 @@ class StorageKW {
     },0)
   }
   deliveryReply_(payload,from,tag) {
+    if(this.tagMarks_[tag]) {
+      return;
+    }
     //console.log('StorageKW::deliveryReply_:: payload=<',payload,'>');
     //console.log('StorageKW::deliveryReply_:: from=<',from,'>');
     //console.log('StorageKW::deliveryReply_:: this.id=<',this.id,'>');
     //console.log('StorageKW::deliveryReply_:: tag=<',tag,'>');
+    this.tagMarks_[tag] = new Date();
     const kwPayload = {kwR:payload,tag:tag};
     if(this.id !== from) {
       this.dht_.delivery(from,kwPayload);
@@ -271,6 +276,17 @@ class StorageKW {
         delete this.dbs_[dbIndex];
       }
     }
+    const tagIndexs = Object.keys(this.tagMarks_);
+    const now = new Date();
+    for(const tagIndex of tagIndexs) {
+      const tagDate = this.tagMarks_[tagIndex];
+      const escape_ms = now - tagDate;
+      if(escape_ms > 100) {
+        //console.log('StorageKW::CheckCachedHandler_:: escape_ms=<',escape_ms,'>');
+        delete this.tagMarks_[tagIndex];
+      }
+    }
+    //console.log('StorageKW::CheckCachedHandler_:: this.tagMarks_=<',this.tagMarks_,'>');
   }
 };
 

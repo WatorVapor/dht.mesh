@@ -27,13 +27,15 @@ class StorageKV {
   }
   onRemoteMsg(msg) {
     //console.log('StorageKV::onRemoteMsg:: msg=<',msg,'>');
-    if(msg.spread && msg.spread.payload && msg.spread.payload.kv) {
-      this.onSpreadMsg_(msg.spread.payload.kv,msg.address,msg.from,msg.spread.payload.tag);
-    } else if(msg.spread && msg.spread.payload && msg.spread.payload.kw) {
-      // empty...
-    } else if(msg.delivery && msg.delivery.payload && msg.delivery.payload.kw) {
-      // empty...
-    } else if(msg.delivery && msg.delivery.payload && msg.delivery.payload.kv) {
+    if(msg.spread && msg.spread.payload) {
+      if(msg.spread.payload.kv) {
+        this.onSpreadMsg_(msg.spread.payload.kv,msg.address,msg.from,msg.spread.payload.tag);
+      } else if(msg.spread.payload.kw) {
+        // empty...
+      } else {
+        console.log('StorageKV::onRemoteMsg:: msg=<',msg,'>');
+      }
+    } else if(msg.delivery && msg.delivery.payload) {
       // empty...
     } else if(msg.loopback) {
       // empty...
