@@ -19,4 +19,5 @@ docker run -d \
   --cpu-shares=256 \
   --name "${DOCKER_MAME}" \
   --restart=always \
+  -e TZ=Asia/Tokyo \
   node:lts node ./kvaluestore/StorageKV.js

@@ -19,4 +19,5 @@ docker run -d \
   --cpu-shares=1024 \
   --name "${DOCKER_MAME}" \
   --restart=always \
+  -e TZ=Asia/Tokyo \
   node:lts node ./cli/daemon.js

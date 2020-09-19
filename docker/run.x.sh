@@ -7,4 +7,5 @@ docker run -it\
   -v ${SCRIPT_DIR}:${SCRIPT_DIR}\
   -u $(id -u $USER):$(id -g $USER)\
   -w ${SCRIPT_DIR}\
+  -e TZ=Asia/Tokyo \
   node:lts /bin/bash
