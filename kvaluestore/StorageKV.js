@@ -14,6 +14,7 @@ class StorageKV {
     this.utils_ = new DHTUtils();
     this.dbs_ = {};
     const self = this;
+    this.debug_ = true;
     this.dht_.OnConnected = ()=> {
       console.log('StorageKV::constructor::OnConnected');
       self.connectDHT_();
@@ -63,6 +64,9 @@ class StorageKV {
     } catch(err) {
       //console.log('StorageKV::onStore_:: err=<',err,'>');
       if (err.notFound) {
+        if(this.debug_) {
+          console.log('StorageKV::onStore_:: address=<',address,'>');
+        }
         await db.put(address,JSON.stringify(content));
       } else {
         console.log('StorageKV::onStore_:: isSaved=<',isSaved,'>');
@@ -79,6 +83,9 @@ class StorageKV {
       address:address
     };
     try {
+      if(this.debug_) {
+        console.log('StorageKV::onFetch_:: address=<',address,'>');
+      }
       const content = await db.get(address);
       //console.log('StorageKV::onFetch_:: content=<',content,'>');
       deliveryPayload.content = content;
