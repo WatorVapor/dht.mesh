@@ -29,5 +29,5 @@ const peer = dht.peerInfo();
 console.log(':: peer=<',peer,'>');
 
 const DHTDaemonWT = require('../api/DHTDaemonWT.js');
-const daemonUTListenChannel = 'mt.dht.mesh.api.daemon.listen.ut';
+const daemonUTListenChannel = 'wt.dht.mesh.api.daemon.listen.ut';
 const daemon = new DHTDaemonWT(dht,daemonUTListenChannel);

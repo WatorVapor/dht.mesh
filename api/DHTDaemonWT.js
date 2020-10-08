@@ -3,17 +3,15 @@ const redis = require('redis');
 const redisOption = {
   path:'/dev/shm/dht.ermu.api.redis.sock'
 };
-const { Worker, isMainThread } = require('worker_threads');
-const DefaultDaemonListenChannel = 'dht.mesh.api.daemon.listen';
 const {Worker} = require('worker_threads');
 
 class DHTDaemonWT {
   constructor(dht,clientChannel) {
     this.dht_ = dht;
-    this.worker_ = new Worker('./DHTDaemonInternalWorker.js',{clientChannel:clientChannel});
+    this.worker_ = new Worker(__dirname +'/DHTDaemonInternalWorker.js',{workerData:clientChannel});
     const self = this;
     this.worker_.on('message', message => {
-      self.onData_(message);
+      self.onWorkerClientMsg_(message);
     });
     this.dht_.onRemoteSpreed = (msg)=> {
       self.onRemoteSpread_(msg);
@@ -23,11 +21,9 @@ class DHTDaemonWT {
     }
   }
 
-  async onData_ (data) {
-    //console.log('DHTDaemonWT::onData_::data=<',data.toString(),'>');  
+  async onWorkerClientMsg_ (jMsg) {
+    console.log('DHTDaemonWT::onWorkerClientMsg_::jMsg=<',jMsg,'>');  
     try {
-      const jMsg = JSON.parse(data.toString());
-      //console.log('DHTDaemonWT::onData_::jMsg=<',jMsg,'>');
       if(jMsg) {
         if(jMsg.peerInfo) {
           await this.onPeerInfo_(jMsg);
@@ -37,16 +33,12 @@ class DHTDaemonWT {
           await this.onDeliveryData_(jMsg);
         } else if(jMsg.loopback) {
           await this.onLoopbackData_(jMsg);
-        } else if(jMsg.subscribe) {
-          this.onSubscribeData_(jMsg);
-        } else if(jMsg.ping) {
-          this.onPing_(jMsg);
         } else {
-          console.log('DHTDaemonWT::onData_::jMsg=<',jMsg,'>');
+          console.log('DHTDaemonWT::onWorkerClientMsg_::jMsg=<',jMsg,'>');
         }
       }
     } catch(e) {
-      console.log('DHTDaemonWT::onData_::e=<',e,'>');
+      console.log('DHTDaemonWT::onWorkerClientMsg_::e=<',e,'>');
     }
   };
 
@@ -55,6 +47,7 @@ class DHTDaemonWT {
     const peer = this.dht_.peerInfo();
     console.log('DHTDaemonWT::onPeerInfo_:: peer=<',peer,'>');
     const peerInfoResp = {
+      channel:jMsg.channel,
       peerInfo:peer,
       cb:jMsg.cb
     };
@@ -65,6 +58,7 @@ class DHTDaemonWT {
     //console.log('DHTDaemonWT::onSpreadData_::jMsg=<',jMsg,'>');
     this.dht_.spread(jMsg.address,jMsg.spread,jMsg.cb);
     const meshResp = {
+      channel:jMsg.channel,
       cb:jMsg.cb,
       spread:jMsg.spread
     };
@@ -75,6 +69,7 @@ class DHTDaemonWT {
     //console.log('DHTDaemonWT::onDeliveryData_::jMsg=<',jMsg,'>');
     this.dht_.delivery(jMsg.peer,jMsg.delivery,jMsg.cb);
     const meshResp = {
+      channel:jMsg.channel,
       cb:jMsg.cb,
       delivery:jMsg.delivery
     };

@@ -6,101 +6,75 @@ const redisOption = {
 const DefaultDaemonListenChannel = 'dht.mesh.api.daemon.listen';
 
 
-class TWRedis {
+class WTRedisClient {
   constructor(clientChannel) {
-    this.createDaemonChannel_(clientChannel)
+    this.remoteSubChannels_ = [];
+    if(clientChannel) {
+      this.createDaemonChannel_(clientChannel);
+    } else {
+      this.createDaemonChannel_(DefaultDaemonListenChannel);
+    }
   }
-  async onData_ (data) {
-    //console.log('TWRedis::onData_::data=<',data.toString(),'>');  
+  async onClientMsg_ (data) {
+    //console.log('WTRedisClient::onClientMsg_::data=<',data.toString(),'>');
     try {
       const jMsg = JSON.parse(data.toString());
-      //console.log('TWRedis::onData_::jMsg=<',jMsg,'>');
+      //console.log('WTRedisClient::onClientMsg_::jMsg=<',jMsg,'>');
       if(jMsg) {
-        if(jMsg.peerInfo) {
-          await this.onPeerInfo_(jMsg);
-        } else if(jMsg.spread) {
-          await this.onSpreadData_(jMsg);
-        } else if(jMsg.delivery) {
-          await this.onDeliveryData_(jMsg);
-        } else if(jMsg.loopback) {
-          await this.onLoopbackData_(jMsg);
+        if(jMsg.ping) {
+          this.onPing_(jMsg);
         } else if(jMsg.subscribe) {
           this.onSubscribeData_(jMsg);
-        } else if(jMsg.ping) {
-          this.onPing_(jMsg);
         } else {
-          console.log('TWRedis::onData_::jMsg=<',jMsg,'>');
+          parentPort.postMessage(jMsg);
         }
+      } else {
+        console.log('WTRedisClient::onClientMsg_::data=<',data.toString(),'>');
       }
     } catch(e) {
-      console.log('TWRedis::onData_::e=<',e,'>');
+      console.log('WTRedisClient::onClientMsg_::e=<',e,'>');
     }
   };
-
-
-  async onPeerInfo_ (jMsg){
-    const peer = this.dht_.peerInfo();
-    console.log('TWRedis::onPeerInfo_:: peer=<',peer,'>');
-    const peerInfoResp = {
-      peerInfo:peer,
-      cb:jMsg.cb
-    };
-    const RespBuff = Buffer.from(JSON.stringify(peerInfoResp),'utf-8');
-    try {
-      this.publisher_.publish(jMsg.channel,RespBuff);
-    } catch(e) {
-      console.log('TWRedis::onPeerInfo_::::e=<',e,'>');
+  parentMsg(msgResp) {
+    console.log('WTRedisClient::parentMsg::msgResp=<',msgResp,'>'); 
+    if(msgResp) {
+      if(msgResp.channel) {
+        //this.publisher_(msgResp.channel,JSON.stringify(msgResp));
+      } else if(msgResp.remoteSpread) {
+        for(const remoteSub of this.remoteSubChannels_) {
+          this.publisher_.publish(remoteSub,JSON.stringify(msgResp));
+        }
+      } else if(msgResp.remoteDelivery) {
+        for(const remoteSub of this.remoteSubChannels_) {
+          this.publisher_.publish(remoteSub,JSON.stringify(msgResp));
+        }
+      } else {
+        console.log('WTRedisClient::parentMsg::data=<',msgResp,'>');
+      }
+    } else {
+      console.log('WTRedisClient::parentMsg::data=<',msgResp,'>');
     }
-  };
+  }
 
-  async onSpreadData_(jMsg) {
-    //console.log('TWRedis::onSpreadData_::jMsg=<',jMsg,'>');
-    const meshResp = {
-      cb:jMsg.cb,
-      spread:jMsg.spread
-    };
-    this.dht_.spread(jMsg.address,jMsg.spread,jMsg.cb);
-    const RespBuff = Buffer.from(JSON.stringify(meshResp),'utf-8');
-    try {
-      this.publisher_.publish(jMsg.channel,RespBuff);
-    } catch(e) {
-      console.log('TWRedis::onSpreadData_::::e=<',e,'>');
-    }
-  };
-
-  async onDeliveryData_(jMsg) {
-    //console.log('TWRedis::onDeliveryData_::jMsg=<',jMsg,'>');
-    const meshResp = {
-      cb:jMsg.cb,
-      delivery:jMsg.delivery
-    };
-    this.dht_.delivery(jMsg.peer,jMsg.delivery,jMsg.cb);
-    const RespBuff = Buffer.from(JSON.stringify(meshResp),'utf-8');
-    try {
-      this.publisher_.publish(jMsg.channel,RespBuff);
-    } catch(e) {
-      console.log('TWRedis::onDeliveryData_::::e=<',e,'>');
-    }
-  };
 
   async onLoopbackData_(jMsg) {
-    //console.log('TWRedis::onLoopbackData_::jMsg=<',jMsg,'>');
+    //console.log('WTRedisClient::onLoopbackData_::jMsg=<',jMsg,'>');
     try {
       const RespBuff = Buffer.from(JSON.stringify(jMsg),'utf-8');
       for(const remoteSub of this.remoteSubChannels_) {
         this.publisher_.publish(remoteSub,RespBuff);
       }
     } catch(e) {
-      console.log('TWRedis::onLoopbackData_::::e=<',e,'>');
+      console.log('WTRedisClient::onLoopbackData_::::e=<',e,'>');
     }
   };
   onSubscribeData_(jMsg) {
-    //console.log('TWRedis::onSubscribeData_::jMsg=<',jMsg,'>');
+    //console.log('WTRedisClient::onSubscribeData_::jMsg=<',jMsg,'>');
     this.remoteSubChannels_.push(jMsg.channel);
   }
 
   onRemoteSpread_(spreadMsg) {
-    //console.log('TWRedis::onRemoteSpread_ spreadMsg=<',spreadMsg,'>');
+    //console.log('WTRedisClient::onRemoteSpread_ spreadMsg=<',spreadMsg,'>');
     for(const remoteSub of this.remoteSubChannels_) {
       const meshResp = {
         remoteSpread:spreadMsg
@@ -113,7 +87,7 @@ class TWRedis {
     this.subscriber_ = redis.createClient(redisOption);
     const self = this;
     this.subscriber_.on('ready',() => {
-      console.log('TWRedis::createDaemonChannel_ subscriber_ ready');
+      console.log('WTRedisClient::createDaemonChannel_ subscriber_ ready');
       if(clientChannel) {
         self.subscriber_.subscribe(clientChannel);
       } else {
@@ -121,10 +95,10 @@ class TWRedis {
       }
     })
     this.subscriber_.on('message',(channel,message) => {
-      self.onData_(message);
+      self.onClientMsg_(message);
     });    
     this.subscriber_.on('error', (error) => {
-      console.log('TWRedis::createDaemonChannel_ subscriber_ error=<',error,'>');
+      console.log('WTRedisClient::createDaemonChannel_ subscriber_ error=<',error,'>');
       setTimeout(()=>{
         self.createDaemonChannel_(apiChannel);
       },1000);
@@ -132,10 +106,10 @@ class TWRedis {
     
     this.publisher_ = redis.createClient(redisOption);
     this.subscriber_.on('ready',() => {
-      console.log('TWRedis::createDaemonChannel_ publisher ready');
+      console.log('WTRedisClient::createDaemonChannel_ publisher ready');
     })
     this.publisher_.on('error', (error) => {
-      console.log('TWRedis::createDaemonChannel_ publisher_ error=<',error,'>');
+      console.log('WTRedisClient::createDaemonChannel_ publisher_ error=<',error,'>');
       setTimeout(()=>{
         self.createDaemonChannel_();
       },1000);
@@ -150,10 +124,17 @@ class TWRedis {
     try {
       this.publisher_.publish(jMsg.channel,RespBuff);
     } catch(e) {
-      console.log('TWRedis::onPing_::::e=<',e,'>');
+      console.log('WTRedisClient::onPing_::::e=<',e,'>');
     }   
  }
 };
 
 const { parentPort,workerData  } = require('worker_threads');
-const twRedis = new TWRedis();
+console.log('::parentPort=<',parentPort,'>');
+console.log('::workerData=<',workerData,'>');
+const wtRedis = new WTRedisClient(workerData);
+
+parentPort.on('message',parentMsg => {
+  //console.log('::parentMsg=<',parentMsg,'>');
+  wtRedis.parentMsg(parentMsg);
+});

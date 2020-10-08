@@ -1,6 +1,6 @@
 'use strict';
 const DHTClient = require('../api/DHTClient.js');
-const daemonUTListenChannel = 'mt.dht.mesh.api.daemon.listen.ut';
+const daemonUTListenChannel = 'wt.dht.mesh.api.daemon.listen.ut';
 const dht = new DHTClient(daemonUTListenChannel);
 //console.log(':: dht=<',dht,'>');
 dht.peerInfo((peerInfo)=>{
@@ -37,8 +37,11 @@ dht.subscribe((remoteMsg,from) => {
   console.log('dht.subscribe:: remoteMsg=<',remoteMsg,'>');
   console.log('dht.subscribe:: from=<',from,'>');
 });
+/*
 dht.OnConnected(() => {
   console.log('dht.OnConnected:: ');
 });
+*/
+
 setTimeout(meshMsg,1000);
 
