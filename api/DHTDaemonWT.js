@@ -5,13 +5,16 @@ const redisOption = {
 };
 const { Worker, isMainThread } = require('worker_threads');
 const DefaultDaemonListenChannel = 'dht.mesh.api.daemon.listen';
+const {Worker} = require('worker_threads');
 
 class DHTDaemonWT {
   constructor(dht,clientChannel) {
     this.dht_ = dht;
-    this.createDaemonChannel_(clientChannel)
-    this.remoteSubChannels_ = [];
+    this.worker_ = new Worker('./DHTDaemonInternalWorker.js',{clientChannel:clientChannel});
     const self = this;
+    this.worker_.on('message', message => {
+      self.onData_(message);
+    });
     this.dht_.onRemoteSpreed = (msg)=> {
       self.onRemoteSpread_(msg);
     }
@@ -19,19 +22,6 @@ class DHTDaemonWT {
       self.onRemoteDelivery_(msg);
     }
   }
-  
-  onConnection_(connection) {
-    //console.log('DHTDaemonWT::onConnection_:connection=<',connection,'>');
-    try {
-      connection.setNoDelay();
-    } catch(e) {
-      console.log('DHTDaemonWT::onConnection_::::e=<',e,'>');
-    }
-    const self = this;
-    connection.on('data', (data) => {
-      self.onData_(data,connection);
-    });
-  };
 
   async onData_ (data) {
     //console.log('DHTDaemonWT::onData_::data=<',data.toString(),'>');  
@@ -68,123 +58,48 @@ class DHTDaemonWT {
       peerInfo:peer,
       cb:jMsg.cb
     };
-    const RespBuff = Buffer.from(JSON.stringify(peerInfoResp),'utf-8');
-    try {
-      this.publisher_.publish(jMsg.channel,RespBuff);
-    } catch(e) {
-      console.log('DHTDaemonWT::onPeerInfo_::::e=<',e,'>');
-    }
+    this.worker_.postMessage(peerInfoResp);
   };
 
   async onSpreadData_(jMsg) {
     //console.log('DHTDaemonWT::onSpreadData_::jMsg=<',jMsg,'>');
+    this.dht_.spread(jMsg.address,jMsg.spread,jMsg.cb);
     const meshResp = {
       cb:jMsg.cb,
       spread:jMsg.spread
     };
-    this.dht_.spread(jMsg.address,jMsg.spread,jMsg.cb);
-    const RespBuff = Buffer.from(JSON.stringify(meshResp),'utf-8');
-    try {
-      this.publisher_.publish(jMsg.channel,RespBuff);
-    } catch(e) {
-      console.log('DHTDaemonWT::onSpreadData_::::e=<',e,'>');
-    }
+    this.worker_.postMessage(meshResp);
   };
 
   async onDeliveryData_(jMsg) {
     //console.log('DHTDaemonWT::onDeliveryData_::jMsg=<',jMsg,'>');
+    this.dht_.delivery(jMsg.peer,jMsg.delivery,jMsg.cb);
     const meshResp = {
       cb:jMsg.cb,
       delivery:jMsg.delivery
     };
-    this.dht_.delivery(jMsg.peer,jMsg.delivery,jMsg.cb);
-    const RespBuff = Buffer.from(JSON.stringify(meshResp),'utf-8');
-    try {
-      this.publisher_.publish(jMsg.channel,RespBuff);
-    } catch(e) {
-      console.log('DHTDaemonWT::onDeliveryData_::::e=<',e,'>');
-    }
+    this.worker_.postMessage(meshResp);
   };
 
   async onLoopbackData_(jMsg) {
     //console.log('DHTDaemonWT::onLoopbackData_::jMsg=<',jMsg,'>');
-    try {
-      const RespBuff = Buffer.from(JSON.stringify(jMsg),'utf-8');
-      for(const remoteSub of this.remoteSubChannels_) {
-        this.publisher_.publish(remoteSub,RespBuff);
-      }
-    } catch(e) {
-      console.log('DHTDaemonWT::onLoopbackData_::::e=<',e,'>');
-    }
+    this.worker_.postMessage(jMsg);
   };
-  onSubscribeData_(jMsg) {
-    //console.log('DHTDaemonWT::onSubscribeData_::jMsg=<',jMsg,'>');
-    this.remoteSubChannels_.push(jMsg.channel);
-  }
 
   onRemoteSpread_(spreadMsg) {
     //console.log('DHTDaemonWT::onRemoteSpread_ spreadMsg=<',spreadMsg,'>');
-    for(const remoteSub of this.remoteSubChannels_) {
-      const meshResp = {
-        remoteSpread:spreadMsg
-      };
-      this.publisher_.publish(remoteSub,JSON.stringify(meshResp));
-    }
+    const meshResp = {
+      remoteSpread:spreadMsg
+    };
+    this.worker_.postMessage(meshResp);
   }
   onRemoteDelivery_(deliveryMsg) {
     //console.log('DHTDaemonWT::onRemoteDelivery_ deliveryMsg=<',deliveryMsg,'>');
-    for(const remoteSub of this.remoteSubChannels_) {
-      const meshResp = {
-        remoteDelivery:deliveryMsg
-      };
-      this.publisher_.publish(remoteSub,JSON.stringify(meshResp));
-    }
-  }
-
-  createDaemonChannel_(clientChannel) {
-    this.subscriber_ = redis.createClient(redisOption);
-    const self = this;
-    this.subscriber_.on('ready',() => {
-      console.log('DHTDaemonWT::createDaemonChannel_ subscriber_ ready');
-      if(clientChannel) {
-        self.subscriber_.subscribe(clientChannel);
-      } else {
-        self.subscriber_.subscribe(DefaultDaemonListenChannel);
-      }
-    })
-    this.subscriber_.on('message',(channel,message) => {
-      self.onData_(message);
-    });    
-    this.subscriber_.on('error', (error) => {
-      console.log('DHTDaemonWT::createDaemonChannel_ subscriber_ error=<',error,'>');
-      setTimeout(()=>{
-        self.createDaemonChannel_(apiChannel);
-      },1000);
-    });
-    
-    this.publisher_ = redis.createClient(redisOption);
-    this.subscriber_.on('ready',() => {
-      console.log('DHTDaemonWT::createDaemonChannel_ publisher ready');
-    })
-    this.publisher_.on('error', (error) => {
-      console.log('DHTDaemonWT::createDaemonChannel_ publisher_ error=<',error,'>');
-      setTimeout(()=>{
-        self.createDaemonChannel_();
-      },1000);
-    });
- }
- 
- onPing_(jMsg) {
     const meshResp = {
-      pong:true
+      remoteDelivery:deliveryMsg
     };
-    const RespBuff = Buffer.from(JSON.stringify(meshResp),'utf-8');
-    try {
-      this.publisher_.publish(jMsg.channel,RespBuff);
-    } catch(e) {
-      console.log('DHTDaemonWT::onPing_::::e=<',e,'>');
-    }   
- }
+    this.worker_.postMessage(meshResp);
+  }
 
 };
 

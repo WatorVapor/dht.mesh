@@ -5,8 +5,7 @@ const fs = require('fs');
 const level = require('level');
 
 const iConstCacheActiveCount = 10;
-const iConstCacheMaxSize = 1024;
-const iConstItemOfOnce = 16;
+const iConstCacheMaxSize = 2048;
 
 class StorageKV {
   constructor() {
