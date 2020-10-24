@@ -4,7 +4,7 @@ const DHTUtils = require("./DHTUtils.js");
 
 module.exports = class KVFolder {
   constructor(path) {
-    this._path = path;
+    this._root = path;
     if (!fs.existsSync(path)) {
       fs.mkdirSync(path,{ recursive: true });
     }
@@ -35,9 +35,10 @@ module.exports = class KVFolder {
   
   getKeyAddress_(key) {
     const keyB32 = this.utils_.calcAddress(key);
-    let pathAddress = this._path 
+    let pathAddress = this._root 
     pathAddress += '/' + keyB32.substring(0,3);
     pathAddress += '/' + keyB32.substring(3,6);
+    pathAddress += '/' + keyB32.substring(6,9);
     pathAddress += '/' + keyB32;
     //console.log('KVFolder::get: pathAddress=<',pathAddress,'>');
     return pathAddress;
