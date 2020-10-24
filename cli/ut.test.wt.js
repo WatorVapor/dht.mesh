@@ -33,9 +33,8 @@ const meshMsg = ()=> {
   
   
 };
-dht.subscribe((remoteMsg,from) => {
+dht.subscribe((remoteMsg) => {
   console.log('dht.subscribe:: remoteMsg=<',remoteMsg,'>');
-  console.log('dht.subscribe:: from=<',from,'>');
 });
 /*
 dht.OnConnected(() => {
