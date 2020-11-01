@@ -12,9 +12,7 @@ module.exports = class KVContent {
   }
   put(content) {
     const key = this.utils_.calcAddress(content);
-    const keyAddress = this.getKeyAddress_(key);
-    //console.log('KVContent::put: keyAddress=<',keyAddress,'>');
-    const keyPath = path.dirname(keyAddress);
+    const keyPath = this.getKeyDir_(key);
     //console.log('KVContent::put: keyPath=<',keyPath,'>');
     if (!fs.existsSync(keyPath)) {
       fs.mkdirSync(keyPath,{ recursive: true });
@@ -24,22 +22,20 @@ module.exports = class KVContent {
   }
   
   get(key) {
-    let keyAddress = this.getKeyAddress_(key);
-    //console.log('KVContent::get: keyAddress=<',keyAddress,'>');
-    if (fs.existsSync(keyAddress)) {
-      let content = fs.readFileSync(keyAddress, 'utf8');
+    let keyPath = this.getKeyAddress_(key);
+    //console.log('KVContent::get: keyPath=<',keyPath,'>');
+    if (fs.existsSync(keyPath)) {
       return content;
     }
     const err = {notFound:true,address:keyAddress};
     return err;
   }
   
-  getKeyAddress_(key) {
+  getKeyDir_(key) {
     const keyB32 = this.utils_.calcAddress(key);
-    let pathAddress = this._root 
-    pathAddress += '/' + keyB32.substring(0,2);
-    pathAddress += '/' + keyB32;
-    //console.log('KVContent::get: pathAddress=<',pathAddress,'>');
-    return pathAddress;
+    let pathDir = this._root 
+    pathDir += '/' + keyB32.substring(0,2);
+    //console.log('KVContent::getKeyDir_: pathDir=<',pathDir,'>');
+    return pathDir;
   }
 }
