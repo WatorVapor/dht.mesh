@@ -34,7 +34,7 @@ module.exports = class KVContent {
   getKeyDir_(key) {
     const keyB32 = this.utils_.calcAddress(key);
     let pathDir = this._root 
-    pathDir += '/' + keyB32.substring(0,2);
+    pathDir += '/' + keyB32.substring(0,4);
     //console.log('KVContent::getKeyDir_: pathDir=<',pathDir,'>');
     return pathDir;
   }
