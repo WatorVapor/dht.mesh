@@ -29,5 +29,5 @@ const peer = dht.peerInfo();
 console.log(':: peer=<',peer,'>');
 
 const daemonKeyValueistenChannel = 'dht.mesh.api.daemon.listen.kvalue';
-const DHTDaemon = require('../api/DHTDaemon.js');
-const daemon = new DHTDaemon(dht,daemonKeyValueistenChannel);
+const DHTDaemonWT = require('../api/DHTDaemonWT.js');
+const daemon = new DHTDaemonWT(dht,daemonKeyValueistenChannel);

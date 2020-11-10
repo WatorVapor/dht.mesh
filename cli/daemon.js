@@ -28,8 +28,8 @@ const dht = new DHT(config);
 const peer = dht.peerInfo();
 console.log(':: peer=<',peer,'>');
 
-const DHTDaemon = require('../api/DHTDaemon.js');
-const daemon = new DHTDaemon(dht);
+const DHTDaemonWT = require('../api/DHTDaemonWT.js');
+const daemon = new DHTDaemonWT(dht);
 
 
 
