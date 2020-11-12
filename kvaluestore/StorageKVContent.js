@@ -57,36 +57,20 @@ class StorageKVContent {
   async onStore_(content,address,tag) {
     //console.log('StorageKVContent::onStore_:: content=<',content,'>');
     //console.log('StorageKVContent::onStore_:: address=<',address,'>');
-    //console.log('StorageKVContent::onFetch_:: this.kv_=<',this.kv_,'>');
+    //console.log('StorageKVContent::onStore_:: this.kv_=<',this.kv_,'>');
     if(typeof content === 'object') {
       content = JSON.stringify(content);
     }
     this.kv_.put(content,address);
-    /*
-    const db = this.getLevelDB_(address);
-    try {
-      const isSaved = await db.get(address);
-    } catch(err) {
-      //console.log('StorageKVContent::onStore_:: err=<',err,'>');
-      if (err.notFound) {
-        if(this.debug_) {
-          console.log('StorageKVContent::onStore_:: address=<',address,'>');
-        }
-        await db.put(address,JSON.stringify(content));
-      } else {
-        console.log('StorageKVContent::onStore_:: isSaved=<',isSaved,'>');
-      }
-    }
-    */
   }
   
   async onFetch_(fetch,address,from,tag) {
-    console.log('StorageKVContent::onFetch_:: fetch=<',fetch,'>');
-    console.log('StorageKVContent::onFetch_:: address=<',address,'>');
-    console.log('StorageKVContent::onFetch_:: from=<',from,'>');
-    console.log('StorageKVContent::onFetch_:: this.repos_=<',this.repos_,'>');
-    /*
-    const db = this.getLevelDB_(address);
+    //console.log('StorageKVContent::onFetch_:: fetch=<',fetch,'>');
+    //console.log('StorageKVContent::onFetch_:: address=<',address,'>');
+    //console.log('StorageKVContent::onFetch_:: from=<',from,'>');
+    //console.log('StorageKVContent::onFetch_:: this.repos_=<',this.repos_,'>');
+    const content = this.kv_.get(address);
+    //console.log('StorageKVContent::onFetch_:: content=<',content,'>');
     const deliveryPayload = {
       address:address
     };
@@ -94,14 +78,13 @@ class StorageKVContent {
       if(this.debug_) {
         console.log('StorageKVContent::onFetch_:: address=<',address,'>');
       }
-      const content = await db.get(address);
       //console.log('StorageKVContent::onFetch_:: content=<',content,'>');
       deliveryPayload.content = content;
     } catch(err) {
       console.log('StorageKVContent::onFetch_:: err=<',err,'>');
     }
     this.deliveryReply_(deliveryPayload,from,tag);
-    */
+
   }
   deliveryReply_(payload,from,tag) {
     //console.log('StorageKVContent::deliveryReply_:: payload=<',payload,'>');
@@ -113,26 +96,6 @@ class StorageKVContent {
     } else {
       this.dht_.loopback(from,kvPayload);
     }
-  }
-  
-  getLevelDB_(address) {
-    const dbPrefix = address.slice(0,2);
-    const dbDir = `${this.repos_}/${dbPrefix}`;
-    //console.log('StorageKVContent::getLevelDB_:: dbDir=<',dbDir,'>');
-    if(!fs.existsSync(dbDir)){
-      fs.mkdirSync(dbDir,{recursive :true});
-    }
-    const dbIndex =  `${dbPrefix}`;
-    if(this.dbs_[dbIndex]) {
-      const db = this.dbs_[dbIndex].db;
-      this.dbs_[dbIndex].count = iConstCacheActiveCount;
-      return db;
-    } else {
-      const dbPath = `${dbDir}/store.level`;
-      const db = level(dbPath);
-      this.dbs_[dbIndex] = { db:db,count:iConstCacheActiveCount};
-      return db;
-    }    
   }
   
   connectDHT_() {
@@ -150,23 +113,6 @@ class StorageKVContent {
     });    
   }
   CheckCachedHandler_() {
-    /*
-    const dbIndexs = Object.keys(this.dbs_);
-    //console.log('StorageKW::CheckCachedHandler_:: dbIndexs.length=<',dbIndexs.length,'>');
-    let clearOld = false;
-    if(dbIndexs.length > iConstCacheMaxSize) {
-      clearOld = true;
-    }
-    for(const dbIndex of dbIndexs) {
-      //console.log('StorageKW::CheckCachedHandler_:: dbIndex=<',dbIndex,'>');
-      const dbStats = this.dbs_[dbIndex];
-      //console.log('StorageKW::CheckCachedHandler_:: dbStats.count=<',dbStats.count,'>');
-      dbStats.count--;
-      if(clearOld && dbStats.count < 0) {
-        delete this.dbs_[dbIndex];
-      }
-    }
-    */
   }
 };
 
