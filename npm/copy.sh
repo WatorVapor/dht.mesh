@@ -4,7 +4,7 @@ mkdir -p ./lib
 mkdir -p ./lib/api
 cp ../api/DHTClient.js ./lib/api/
 cp ../api/DHTUtils.js ./lib/api/
-cp ../api/KVFolder.js ./lib/api/
+cp ../api/KVContent.js ./lib/api/
 mkdir -p ./lib/kvaluestore
 cp ../kvaluestore/ClientKV.js ./lib/kvaluestore/
 mkdir -p ./lib/kwordstore
