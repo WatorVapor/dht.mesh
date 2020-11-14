@@ -20,4 +20,4 @@ docker run -d \
   --name "${DOCKER_MAME}" \
   --restart=always \
   -e TZ=Asia/Tokyo \
-  node:lts node ./kvaluestore/StorageKV.js
+  node:lts node ./kvaluestore/StorageKVContent.js
