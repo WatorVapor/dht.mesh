@@ -4,5 +4,5 @@ module.exports = {
   KV : require('./lib/kvaluestore/ClientKV'),
   DHTClient : require('./lib/api/DHTClient'),
   DHTUtils : require('./lib/api/DHTUtils'),
-  KVFolder : require('./lib/api/KVFolder')
+  KVContent : require('./lib/api/KVContent')
 }
