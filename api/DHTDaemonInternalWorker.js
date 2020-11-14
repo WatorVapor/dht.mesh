@@ -38,9 +38,7 @@ class WTRedisClient {
   parentMsg(msgResp) {
     console.log('WTRedisClient::parentMsg::msgResp=<',msgResp,'>'); 
     if(msgResp) {
-      if(msgResp.channel) {
-        this.publisher_.publish(msgResp.channel,JSON.stringify(msgResp));
-      } else if(msgResp.remoteSpread) {
+      if(msgResp.remoteSpread) {
         for(const remoteSub of this.remoteSubChannels_) {
           this.publisher_.publish(remoteSub,JSON.stringify(msgResp));
         }
@@ -50,6 +48,7 @@ class WTRedisClient {
         }
       } else if(msgResp.loopback) {
         for(const remoteSub of this.remoteSubChannels_) {
+          console.log('WTRedisClient::parentMsg::remoteSub=<',remoteSub,'>'); 
           this.publisher_.publish(remoteSub,JSON.stringify(msgResp));
         }
       } else {
