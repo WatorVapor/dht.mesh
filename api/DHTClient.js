@@ -84,7 +84,7 @@ class DHTClient {
     //console.log('DHTClient::onMsg_ msg=<',msg.toString('utf-8'),'>');
     try {
       const jMsg = JSON.parse(msg.toString());
-      console.log('DHTClient::onMsg_ jMsg=<',jMsg,'>');
+      //console.log('DHTClient::onMsg_ jMsg=<',jMsg,'>');
       if(jMsg) {
         if(jMsg.peerInfo) {
           this.onPeerInfo_(jMsg);
