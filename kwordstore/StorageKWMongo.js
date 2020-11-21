@@ -2,53 +2,17 @@
 const DHTClient = require('../api/DHTClient.js');
 const DHTUtils = require('../api/DHTUtils.js');
 const fs = require('fs');
-const level = require('level');
-
-
 const { MongoClient } = require('mongodb');
-
-
-const username = encodeURIComponent('EBWzun82iVjW');
-const password = encodeURIComponent('RNQCeZn2aqqR');
-const authMechanism = 'DEFAULT';
 const dbURL = `mongodb://%2Fdev%2Fshm%2Fmongodb-27017.sock`;
 const connectOption = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 }
-
-/*
-const username = encodeURIComponent('tYm0IdZ2');
-const password = encodeURIComponent('hy8YXhln');
-const authMechanism = "DEFAULT";
-const dbURL = `mongodb://${username}:${password}@localhost:27017/?Mechanism=${authMechanism}`;
-const connectOption = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}
-*/
-MongoClient.connect(dbURL,connectOption,(err, client)=>{
-  console.log('StorageKWMongo::connect:: err=<',err,'>');
-  console.log('StorageKWMongo::connect:: client=<',client,'>');
-  if(!err) {
-    self.client_ = client;
-    self.onClientCreated_();
-  } else {
-    console.log('MongoStorage::constructor:err=<', err,'>');
-  }
-});
-    
-/*
-
-const iConstCacheActiveCount = 10;
-const iConstCacheMaxSize = 1024;
 const iConstItemOfOnce = 16;
-
 class StorageKWMongo {
   constructor() {
     this.dht_ = new DHTClient();
     this.utils_ = new DHTUtils();
-    this.dbs_ = {};
     this.stats_ = {};
     this.tagMarks_ = {};
     const self = this;
@@ -59,9 +23,16 @@ class StorageKWMongo {
     this.dht_.OnDisConnected = ()=> {
       console.log('StorageKWMongo::constructor::OnDisConnected');
     }
-    setInterval(()=>{
-      self.CheckCachedHandler_();
-    },1000*10);
+    MongoClient.connect(dbURL,connectOption,(err, client)=>{
+      //console.log('StorageKWMongo::connect:: err=<',err,'>');
+      //console.log('StorageKWMongo::connect:: client=<',client,'>');
+      if(!err) {
+        self.mongo_ = client;
+        self.onMongoCreated_();
+      } else {
+        console.log('MongoStorage::constructor:err=<', err,'>');
+      }
+    });    
   }
   onRemoteMsg(msg) {
     //console.log('StorageKWMongo::onRemoteMsg:: msg=<',msg,'>');
@@ -89,13 +60,39 @@ class StorageKWMongo {
     }
   }
   onStore_(word,store,rank,address,tag) {
-    //console.log('StorageKWMongo::onStore_:: word=<',word,'>');
-    //console.log('StorageKWMongo::onStore_:: store=<',store,'>');
-    //console.log('StorageKWMongo::onStore_:: rank=<',rank,'>');
-    //console.log('StorageKWMongo::onStore_:: address=<',address,'>');
-    const db = this.getResourceDB_(address,rank);
-    this.store2Level(db,store,address,rank);
+    console.log('StorageKWMongo::onStore_:: word=<',word,'>');
+    console.log('StorageKWMongo::onStore_:: store=<',store,'>');
+    console.log('StorageKWMongo::onStore_:: rank=<',rank,'>');
+    console.log('StorageKWMongo::onStore_:: address=<',address,'>');
+    const wordAddress = this.getAddress(word);
+    console.log('StorageKWMongo::onStore_:: wordAddress=<',wordAddress,'>');
+    if(wordAddress !== address) {
+      return;
+    }
+    const storeObject = {
+      word:word,
+      store:store,
+      rank:rank,
+      address,address
+    };
+    console.log('StorageKWMongo::onStore_:: storeObject=<',storeObject,'>');
+    const findFilter = {
+      store: store,
+      address: address,
+    };
+    const hint = this.rank_.find(findFilter).toArray((error, documents)=>{
+      if(error) {
+        console.log('StorageKWMongo::onStore_:: error=<',error,'>');
+      } else {
+        if(documents.length >0) {
+          console.log('StorageKWMongo::onStore_:: documents=<',documents,'>');
+        } else {
+          
+        }
+      }
+    });
   }
+  /*
   async store2Level(db,store,address,rank) {
     const self = this;
     if(db.isOpen() === false) {
@@ -130,6 +127,7 @@ class StorageKWMongo {
     }
     fs.writeFileSync(`${this.repos_}/${address}/stats.json`,JSON.stringify(this.stats_[address]));
   }
+  */
   
   async onFetch_(fetch,address,from,tag) {
     //console.log('StorageKWMongo::onFetch_:: fetch=<',fetch,'>');
@@ -150,6 +148,7 @@ class StorageKWMongo {
     }
     this.onFetchResource_(rankCount,fetch,address,from,tag);
   }
+  /*
   onFetchResource_(rankCount,fetch,address,from,tag) {
     //console.log('StorageKWMongo::onFetchResource_:: rankCount=<',rankCount,'>');
     rankCount.sort((a,b)=>{return b[0] -a[0]});
@@ -236,6 +235,7 @@ class StorageKWMongo {
       readResouce();
     },0)
   }
+  */
   deliveryReply_(payload,from,tag) {
     if(this.tagMarks_[tag]) {
       return;
@@ -252,6 +252,8 @@ class StorageKWMongo {
       this.dht_.loopback(from,kwPayload);
     }
   }
+  
+  /*
   
   getResourceDB_(address,rank) {
     const dbDir = `${this.repos_}/${address}/${rank}`;
@@ -275,6 +277,7 @@ class StorageKWMongo {
       return db;
     }
   }
+  */
 
   getAddress(content) {
     return this.utils_.calcAddress(content);
@@ -296,6 +299,7 @@ class StorageKWMongo {
       self.onRemoteMsg(remoteMsg);
     });    
   }
+  /*
   CheckCachedHandler_() {
     const dbIndexs = Object.keys(this.dbs_);
     //console.log('StorageKWMongo::CheckCachedHandler_:: dbIndexs.length=<',dbIndexs.length,'>');
@@ -324,7 +328,12 @@ class StorageKWMongo {
     }
     //console.log('StorageKWMongo::CheckCachedHandler_:: this.tagMarks_=<',this.tagMarks_,'>');
   }
+  */
+  onMongoCreated_() {
+    this.kword_ = this.mongo_.db('kword');    
+    //console.log('StorageKWMongo::onMongoCreated_:this.kword_=<', this.kword_,'>');
+    this.rank_ = this.kword_.collection('rank');
+  }
 };
 
 const daemon = new StorageKWMongo();
-*/
