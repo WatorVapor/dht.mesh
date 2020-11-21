@@ -6,6 +6,18 @@ const level = require('level');
 
 
 const { MongoClient } = require('mongodb');
+
+
+const username = encodeURIComponent('EBWzun82iVjW');
+const password = encodeURIComponent('RNQCeZn2aqqR');
+const authMechanism = 'DEFAULT';
+const dbURL = `mongodb://%2Fdev%2Fshm%2Fmongodb-27017.sock`;
+const connectOption = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}
+
+/*
 const username = encodeURIComponent('tYm0IdZ2');
 const password = encodeURIComponent('hy8YXhln');
 const authMechanism = "DEFAULT";
@@ -14,7 +26,18 @@ const connectOption = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 }
-
+*/
+MongoClient.connect(dbURL,connectOption,(err, client)=>{
+  console.log('StorageKWMongo::connect:: err=<',err,'>');
+  console.log('StorageKWMongo::connect:: client=<',client,'>');
+  if(!err) {
+    self.client_ = client;
+    self.onClientCreated_();
+  } else {
+    console.log('MongoStorage::constructor:err=<', err,'>');
+  }
+});
+    
 /*
 
 const iConstCacheActiveCount = 10;
@@ -302,6 +325,6 @@ class StorageKWMongo {
     //console.log('StorageKWMongo::CheckCachedHandler_:: this.tagMarks_=<',this.tagMarks_,'>');
   }
 };
-*/
 
 const daemon = new StorageKWMongo();
+*/
