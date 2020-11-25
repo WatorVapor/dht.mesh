@@ -60,80 +60,64 @@ class StorageKWMongo {
     }
   }
   onStore_(word,store,rank,address,tag) {
-    console.log('StorageKWMongo::onStore_:: word=<',word,'>');
-    console.log('StorageKWMongo::onStore_:: store=<',store,'>');
-    console.log('StorageKWMongo::onStore_:: rank=<',rank,'>');
-    console.log('StorageKWMongo::onStore_:: address=<',address,'>');
+    //console.log('StorageKWMongo::onStore_:: word=<',word,'>');
+    //console.log('StorageKWMongo::onStore_:: store=<',store,'>');
+    //console.log('StorageKWMongo::onStore_:: rank=<',rank,'>');
+    //console.log('StorageKWMongo::onStore_:: address=<',address,'>');
     const wordAddress = this.getAddress(word);
-    console.log('StorageKWMongo::onStore_:: wordAddress=<',wordAddress,'>');
+    //console.log('StorageKWMongo::onStore_:: wordAddress=<',wordAddress,'>');
     if(wordAddress !== address) {
       return;
     }
-    const storeObject = {
-      word:word,
-      store:store,
-      rank:rank,
-      address,address
-    };
-    console.log('StorageKWMongo::onStore_:: storeObject=<',storeObject,'>');
     const findFilter = {
       store: store,
       address: address,
     };
-    const hint = this.rank_.find(findFilter).toArray((error, documents)=>{
+    this.rank_.findOne(findFilter,(error, document)=>{
       if(error) {
         console.log('StorageKWMongo::onStore_:: error=<',error,'>');
       } else {
-        if(documents.length >0) {
-          console.log('StorageKWMongo::onStore_:: documents=<',documents,'>');
+        //console.log('StorageKWMongo::onStore_:: document=<',document,'>');
+        if(document._id) {
+          //console.log('StorageKWMongo::onStore_:: document=<',document,'>');
+          const newvalues = { $set: { rank: rank,at:new Date() } };
+          this.rank_.updateOne(findFilter,newvalues);
         } else {
-          
+          //console.log('StorageKWMongo::onStore_:: document=<',document,'>');
+          const storeObject = {
+            word:word,
+            store:store,
+            rank:rank,
+            address:address,
+            at:new Date()
+          };
+          this.rank_.insertOne(storeObject);
         }
       }
     });
   }
-  /*
-  async store2Level(db,store,address,rank) {
-    const self = this;
-    if(db.isOpen() === false) {
-      console.log('StorageKWMongo::store2Level:: db.isOpen()=<',db.isOpen(),'>');
-    } else {
-      console.log('StorageKWMongo::store2Level:: db.isOpen()=<',db.isOpen(),'>');
-    }
-    try {
-      await db.get(store);
-    } catch(err) {
-      if (err.notFound) {
-        await db.put(store,1);
-        self.onUpdateStats(address,rank);
-      }
-    }
-  }
-  onUpdateStats(address,rank) {
-    console.log('StorageKWMongo::onUpdateStats:: address=<',address,'>');
-    console.log('StorageKWMongo::onUpdateStats:: rank=<',rank,'>');
-    try {
-      if(!this.stats_[address]) {
-        this.stats_[address] = require(`${this.repos_}/${address}/stats.json`);
-      }
-    } catch(e) {
-      this.stats_[address] = {};
-    }
-    const rankIndex = rank.toString();
-    if(this.stats_[address][rankIndex]) {
-      this.stats_[address][rankIndex] += 1;
-    } else {
-      this.stats_[address][rankIndex] = 1;
-    }
-    fs.writeFileSync(`${this.repos_}/${address}/stats.json`,JSON.stringify(this.stats_[address]));
-  }
-  */
   
   async onFetch_(fetch,address,from,tag) {
-    //console.log('StorageKWMongo::onFetch_:: fetch=<',fetch,'>');
-    //console.log('StorageKWMongo::onFetch_:: address=<',address,'>');
-    //console.log('StorageKWMongo::onFetch_:: from=<',from,'>');
-    //console.log('StorageKWMongo::onFetch_:: tag=<',tag,'>');
+    console.log('StorageKWMongo::onFetch_:: fetch=<',fetch,'>');
+    console.log('StorageKWMongo::onFetch_:: address=<',address,'>');
+    console.log('StorageKWMongo::onFetch_:: from=<',from,'>');
+    console.log('StorageKWMongo::onFetch_:: tag=<',tag,'>');
+    const findFilter = {
+      address: address
+    };
+    const query = await this.rank_.count(findFilter);
+    console.log('StorageKWMongo::onFetch_:: query=<',query,'>');
+    /*
+    this.rank_.find(findFilter).toArray((error, documents)=>{
+      if(error) {
+        console.log('StorageKWMongo::onStore_:: error=<',error,'>');
+      } else {
+        console.log('StorageKWMongo::onStore_:: documents=<',documents,'>');
+      }
+    });
+    */
+
+    /*
     try {
       if(!this.stats_[address]) {
         this.stats_[address] = require(`${this.repos_}/${address}/stats.json`);
@@ -147,6 +131,7 @@ class StorageKWMongo {
       rankCount.push([parseInt(rankIndex),this.stats_[address][rankIndex]])
     }
     this.onFetchResource_(rankCount,fetch,address,from,tag);
+    */
   }
   /*
   onFetchResource_(rankCount,fetch,address,from,tag) {
