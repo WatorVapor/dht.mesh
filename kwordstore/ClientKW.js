@@ -69,19 +69,19 @@ class ClientKW {
     }
   }
   onLoopBackMsg_(loopbak) {
-    //console.log('ClientKW::onLoopBackMsg_:: loopbak=<',loopbak,'>');
+    console.log('ClientKW::onLoopBackMsg_:: loopbak=<',loopbak,'>');
     if(loopbak.kwR) {
       this.onReplyMsg_(loopbak.kwR,loopbak.tag);
     }
   }
   onDeliveryMsg_(payload) {
-    //console.log('ClientKW::onDeliveryMsg_:: payload=<',payload,'>');
+    console.log('ClientKW::onDeliveryMsg_:: payload=<',payload,'>');
     if(payload.kwR) {
       this.onReplyMsg_(payload.kwR,payload.tag);
     }
   }
   onReplyMsg_(reply,tag) {
-    //console.log('ClientKW::onReplyMsg_:: reply=<',reply,'>');
+    console.log('ClientKW::onReplyMsg_:: reply=<',reply,'>');
     if(typeof this.onData === 'function') {
       this.onData(reply,tag);
     }
