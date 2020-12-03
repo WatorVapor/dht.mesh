@@ -123,7 +123,7 @@ class StorageKWMongo {
       offset:itemFromOffset,
       total:count,
       finnish:(itemFromOffset + iConstItemOfOnce > count),
-      resource:resources
+      content:resources
     }
     //console.log('StorageKWMongo::onFetch_:: deliveryPayload=<',deliveryPayload,'>');
     this.deliveryReply_(deliveryPayload,from,tag);
