@@ -132,10 +132,10 @@ class StorageKWMongo {
     if(this.tagMarks_[tag]) {
       return;
     }
-    console.log('StorageKWMongo::deliveryReply_:: payload=<',payload,'>');
-    console.log('StorageKWMongo::deliveryReply_:: from=<',from,'>');
-    console.log('StorageKWMongo::deliveryReply_:: this.id=<',this.id,'>');
-    console.log('StorageKWMongo::deliveryReply_:: tag=<',tag,'>');
+    //console.log('StorageKWMongo::deliveryReply_:: payload=<',payload,'>');
+    //console.log('StorageKWMongo::deliveryReply_:: from=<',from,'>');
+    //console.log('StorageKWMongo::deliveryReply_:: this.id=<',this.id,'>');
+    //console.log('StorageKWMongo::deliveryReply_:: tag=<',tag,'>');
     this.tagMarks_[tag] = new Date();
     const kwPayload = {kwR:payload,tag:tag};
     if(this.id !== from) {
