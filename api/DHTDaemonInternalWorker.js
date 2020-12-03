@@ -51,6 +51,8 @@ class WTRedisClient {
           console.log('WTRedisClient::parentMsg::remoteSub=<',remoteSub,'>'); 
           this.publisher_.publish(remoteSub,JSON.stringify(msgResp));
         }
+      } else if(msgResp.channel) {
+          this.publisher_.publish(msgResp.channel,JSON.stringify(msgResp));
       } else {
         console.log('WTRedisClient::parentMsg::data=<',msgResp,'>');
       }
