@@ -30,7 +30,7 @@ class StorageKWMongo {
         self.mongo_ = client;
         self.onMongoCreated_();
       } else {
-        console.log('MongoStorage::constructor:err=<', err,'>');
+        console.log('StorageKWMongo::constructor:err=<', err,'>');
       }
     });    
   }
