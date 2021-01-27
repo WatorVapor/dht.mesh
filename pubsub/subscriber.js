@@ -28,6 +28,10 @@ class Subscriber {
     console.log('Subscriber::subscribe: channel =<',channel,'>');
     this.send_({subscribe:channel});
   }
+  unsubscribe(channel) {
+    console.log('Subscriber::unsubscribe: channel =<',channel,'>');
+    this.send_({unsubscribe:channel});
+  }
 
   onApiMsg(msg) {
     //console.log('Subscriber::onApiMsg:msg=<',msg,'>');
