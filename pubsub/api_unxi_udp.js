@@ -35,11 +35,23 @@ class ApiUnxiUdp {
     const cmdChmod = `chmod 777  ${path}`
     const resultChmod =  execSync(cmdChmod);
     console.log('ApiUnxiUdp::bindUnixSocket: resultChmod =<',resultChmod.toString(),'>');
-
   }
-  send(cmd,path) {
+  send(cmd,toPath) {
     const cmdMsg = Buffer.from(JSON.stringify(cmd));
-    this.client_.send(cmdMsg, 0, cmdMsg.length, path);    
+    try {
+      this.client_.send(cmdMsg, 0, cmdMsg.length, toPath);
+    } catch(err) {
+      console.log('ApiUnxiUdp::send:err=<',err,'>');
+    }
+  }
+  
+  doPing(ping) {
+    this.pingMsg_ = ping;
+    setInterval(this.doPing_.bind(this),1000);    
+  }
+  doPing_() {
+    this.pingMsg_.at = new Date();
+    this.send(this.pingMsg_,this.pingMsg_.ping);
   }
 };
 module.exports = ApiUnxiUdp;
