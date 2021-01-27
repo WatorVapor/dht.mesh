@@ -3,6 +3,9 @@ const debug_ = true;
 const unix = require('unix-dgram');
 const execSync = require('child_process').execSync;
 const ApiUnxiUdp = require('./api_unxi_udp.js');
+const DHTUtils = require('./DHTUtils.js');
+const utils = new DHTUtils();
+
 const client2broker = '/dev/shm/dht.pubsub.client2broker.sock';
 
 class Broker {
@@ -16,6 +19,7 @@ class Broker {
     });
     this.api_.bindUnixSocket(client2broker);
     this.api_cbs_ = {};
+    this.localChannels_ = {};
   }
   onApiMsg(msg) {
     //console.log('Broker::onApiMsg:msg=<',msg,'>');
@@ -25,6 +29,8 @@ class Broker {
       this.onApiPing(msg.at,msg.cb)
     } else if(msg.subscribe) {
       this.onApiSubscribe(msg.subscribe,msg.cb)
+    } else if(msg.publish) {
+      this.onApiPublish(msg.publish,msg.cb)
     } else {
       console.log('Broker::onApiMsg:msg=<',msg,'>');
     }
@@ -58,8 +64,39 @@ class Broker {
   }
 
   onApiSubscribe(channel,cb) {
-    console.log('Broker::onApiSubscribe:channel=<',channel,'>');
-    console.log('Broker::onApiSubscribe:cb=<',cb,'>');
+    //console.log('Broker::onApiSubscribe:channel=<',channel,'>');
+    //console.log('Broker::onApiSubscribe:cb=<',cb,'>');
+    const address = utils.calcAddress(channel);
+    //console.log('Broker::onApiSubscribe:address=<',address,'>');
+    if(!this.localChannels_[address]) {
+      this.localChannels_[address] = [];
+    }
+    this.localChannels_[address].push({channel:channel,cb:cb,at:new Date()});
+  }
+  onApiPublish(publish,cb) {
+    //console.log('Broker::onApiPublish:publish=<',publish,'>');
+    const channel = publish.c;
+    const message = publish.m;
+    //console.log('Broker::onApiPublish:channel=<',channel,'>');
+    //console.log('Broker::onApiPublish:message=<',message,'>');
+    const address = utils.calcAddress(channel);
+    //console.log('Broker::onApiPublish:address=<',address,'>');
+    const channelLocals = this.localChannels_[address];
+    for(const channelLocal of channelLocals) {
+      //console.log('Broker::onApiPublish:channelLocal=<',channelLocal,'>');
+      const toPath = `/dev/shm/dht.pubsub.broker2client.${channelLocal.cb}.sock`;
+      //console.log('Broker::onApiPublish:toPath=<',toPath,'>');
+      const api_cb = this.api_cbs_[channelLocal.cb];
+      if(api_cb) {
+        this.api_.send({publisher:publish,at:new Date()},toPath);
+      } else {
+        const index = this.localChannels_[address].indexOf(channelLocal);
+        //console.log('Broker::onApiPublish:index=<',index,'>');
+        if(index > -1) {
+          this.localChannels_[address].splice(index,1);
+        }
+      }
+    }
   }
 };
 module.exports = Broker;

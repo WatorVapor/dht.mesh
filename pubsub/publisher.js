@@ -26,7 +26,7 @@ class Publisher {
   publish(channel,msg) {
     console.log('Publisher::publish: channel =<',channel,'>');
     console.log('Publisher::publish: msg =<',msg,'>');
-    this.send_({publish:channel,msg:msg});
+    this.send_({publish:{c:channel,m:msg}});
   }
 
 

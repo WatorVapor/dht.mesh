@@ -25,11 +25,11 @@ class Subscriber {
     this.send_({client:broker2client});
   }
   subscribe(channel) {
-    console.log('Subscriber::subscribe: channel =<',channel,'>');
+    //console.log('Subscriber::subscribe: channel =<',channel,'>');
     this.send_({subscribe:channel});
   }
   unsubscribe(channel) {
-    console.log('Subscriber::unsubscribe: channel =<',channel,'>');
+    //console.log('Subscriber::unsubscribe: channel =<',channel,'>');
     this.send_({unsubscribe:channel});
   }
 
@@ -37,8 +37,8 @@ class Subscriber {
     //console.log('Subscriber::onApiMsg:msg=<',msg,'>');
     if(msg.pong) {
       this.onBrokerPong(msg.pong,msg.sent);
-    } else if(msg.ping) {
-    } else if(msg.subscribe) {
+    } else if(msg.publisher) {
+      this.onBrokerPublisher(msg.publisher,msg.at);
     } else {
       console.log('Subscriber::onApiMsg:msg=<',msg,'>');
     }
@@ -50,6 +50,19 @@ class Subscriber {
     const escape_ms = new Date() - new Date(sentAt);
     //console.log('Subscriber::onBrokerPong:escape_ms=<',escape_ms,'>');
   }
+
+  onBrokerPublisher(publisher,at) {
+    //console.log('Subscriber::onBrokerPublisher:publisher=<',publisher,'>');
+    //console.log('Subscriber::onBrokerPublisher:at=<',at,'>');
+    const escape_ms = new Date() - new Date(at);
+    //console.log('Subscriber::onBrokerPublisher:escape_ms=<',escape_ms,'>');
+    if(publisher && publisher.c && publisher.m) {
+      if(typeof this.onMsg_ === 'function' ) {
+        this.onMsg_(publisher.c,publisher.m);
+      }
+    }
+  }
+
 
   send_(cmd) {
     cmd.cb = broker2client_cb;
