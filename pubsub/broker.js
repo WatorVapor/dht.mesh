@@ -3,10 +3,20 @@ const debug_ = true;
 const unix = require('unix-dgram');
 const execSync = require('child_process').execSync;
 const ApiUnxiUdp = require('./api_unxi_udp.js');
+const DHTUdp = require('./dht_udp.js');
 const DHTUtils = require('./DHTUtils.js');
 const utils = new DHTUtils();
 
 const client2broker = '/dev/shm/dht.pubsub.client2broker.sock';
+const dht_port = 1234;
+const dht_config = {
+  entrances: [
+    {
+      host:'ermu4.wator.xyz',
+      port:dht_port
+    },
+  ]
+};
 
 class Broker {
   constructor(port) {
@@ -20,7 +30,18 @@ class Broker {
     this.api_.bindUnixSocket(client2broker);
     this.api_cbs_ = {};
     this.localChannels_ = {};
+
+    this.dht_udp_ = new DHTUdp(dht_config,(msg)=>{
+      self.onDHTUdpMsg(msg);
+    });
+    this.dht_udp_.bindSocket(dht_port);
   }
+
+  onDHTUdpMsg(msg) {
+    console.log('Broker::onDHTUdpMsg:msg=<',msg,'>');
+  }
+
+
   onApiMsg(msg) {
     //console.log('Broker::onApiMsg:msg=<',msg,'>');
     if(msg.client) {
