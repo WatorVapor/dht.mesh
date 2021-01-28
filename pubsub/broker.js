@@ -5,7 +5,6 @@ const execSync = require('child_process').execSync;
 const ApiUnxiUdp = require('./api_unxi_udp.js');
 const DHTUdp = require('./dht.udp.js');
 const DHTUtils = require('./dht.utils.js');
-const DHTNode = require('./dht.node.js');
 const utils = new DHTUtils();
 
 const client2broker = '/dev/shm/dht.pubsub.client2broker.sock';
@@ -18,8 +17,9 @@ const dht_config = {
     },
   ],
   reps: {
-    dht:'./store'
-  }
+    dht:`/dev/shm/dht.pubsub`
+  },
+  trap:true
 };
 
 class Broker {
@@ -35,37 +35,60 @@ class Broker {
     this.api_cbs_ = {};
     this.localChannels_ = {};
 
-    this.dht_udp_ = new DHTUdp(dht_config,(msg,remote)=>{
-      self.onDHTUdpMsg(msg,remote);
+    this.dht_udp_ = new DHTUdp(dht_config,(msg,remote,node)=>{
+      self.onDHTUdpMsg(msg,remote,node);
     });
     this.dht_udp_.bindSocket(dht_port);
     this.worldNodes_ = {};
-    this.node_ = new DHTNode(dht_config);
   }
 
-  onDHTUdpMsg(msg,remote) {
+  onDHTUdpMsg(msg,remote,nodeFrom) {
     //console.log('Broker::onDHTUdpMsg:msg=<',msg,'>');
+    //console.log('Broker::onDHTUdpMsg:remote=<',remote,'>');
+    //console.log('Broker::onDHTUdpMsg:nodeFrom=<',nodeFrom,'>');
     if(msg.entry) {
-      this.onDHTEntry(msg.entry,remote);
-    } else if(msg.ping) {
+      this.onDHTEntry(msg.entry,remote,nodeFrom);
+    } else if(msg.welcome) {
+      this.onDHTWelcome(msg.welcome,remote,nodeFrom);
     } else {
       console.log('Broker::onDHTUdpMsg:msg=<',msg,'>');
+      console.log('Broker::onDHTUdpMsg:remote=<',remote,'>');
+      console.log('Broker::onDHTUdpMsg:nodeFrom=<',nodeFrom,'>');
     }
   }
-  onDHTEntry(entry,remote) {
+  onDHTEntry(entry,remote,nodeFrom) {
     //console.log('Broker::onDHTEntry:entry=<',entry,'>');
     //console.log('Broker::onDHTEntry:remote=<',remote,'>');
+    //console.log('Broker::onDHTEntry:nodeFrom=<',nodeFrom,'>');
     const address = remote.address;
     const port = entry.port;
-    console.log('Broker::onDHTEntry:address=<',address,'>');
-    console.log('Broker::onDHTEntry:port=<',port,'>');
+    //console.log('Broker::onDHTEntry:address=<',address,'>');
+    //console.log('Broker::onDHTEntry:port=<',port,'>');
+    this.worldNodes_[nodeFrom] = {
+      address:address,
+      port:port,
+      at:new Date().toISOString()
+    }
     const welcome = {
       welcome:{
         nodes:this.worldNodes_,
-        at:new Date()
+        at:new Date().toISOString()
       }
     };
     this.dht_udp_.send(welcome,port,address);
+    console.log('Broker::onDHTEntry:this.worldNodes_=<',this.worldNodes_,'>');
+  }
+  onDHTWelcome(welcome,remote,nodeFrom) {
+    //console.log('Broker::onDHTWelcome:welcome=<',welcome,'>');
+    //console.log('Broker::onDHTWelcome:remote=<',remote,'>');
+    //console.log('Broker::onDHTWelcome:nodeFrom=<',nodeFrom,'>');
+    for(const nodeKey in welcome.nodes) {
+      //console.log('Broker::onDHTWelcome:nodeKey=<',nodeKey,'>');
+      const endpoint = welcome.nodes[nodeKey];
+      //console.log('Broker::onDHTWelcome:endpoint=<',endpoint,'>');
+      this.worldNodes_[nodeKey] = endpoint;
+    }
+    console.log('Broker::onDHTWelcome:this.worldNodes_=<',this.worldNodes_,'>');
   }
 
 

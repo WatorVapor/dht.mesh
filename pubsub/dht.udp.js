@@ -1,6 +1,7 @@
 'use strict';
 const dgram = require('dgram');
 const DHTMachine = require('./dht.machine.js');
+const DHTNode = require('./dht.node.js');
 const debug_ = true;
 class DHTUdp {
   constructor(conf,onMsg) {
@@ -12,6 +13,7 @@ class DHTUdp {
     this.onMsg_ = onMsg;
     this.machine_ = new DHTMachine({localhost:false});
     setTimeout(this.enterMesh_.bind(this),1000);
+    this.node_ = new DHTNode(conf);    
   }
   
   bindSocket(port) {
@@ -25,8 +27,12 @@ class DHTUdp {
       //console.log('DHTUdp::bindSocket: message remote =<',remote,'>');
       try {
         const jMsg = JSON.parse(message.toString());
-        if(typeof self.onMsg_ === 'function') {
-          self.onMsg_(jMsg,remote);
+        const result = this.node_.verify(jMsg);
+        //console.log('DHTUdp::bindSocket: message result =<',result,'>');
+        if(result && typeof self.onMsg_ === 'function') {
+          const node = this.node_.calcID(jMsg);
+          //console.log('DHTUdp::bindSocket: message node =<',node,'>');
+          self.onMsg_(jMsg.p,remote,node);
         }
       } catch(err) {
         console.log('DHTUdp::bindSocket: message err =<',err,'>');
@@ -36,7 +42,8 @@ class DHTUdp {
     this.port_ = port;
   }
   send(cmd,port,host) {
-    const cmdMsg = Buffer.from(JSON.stringify(cmd));
+    const signedCmd = this.node_.sign(cmd);
+    const cmdMsg = Buffer.from(JSON.stringify(signedCmd));
     try {
       this.client_.send(cmdMsg, 0, cmdMsg.length, port,host);
     } catch(err) {
