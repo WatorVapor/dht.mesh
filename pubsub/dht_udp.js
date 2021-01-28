@@ -56,17 +56,12 @@ class DHTUdp {
     //console.log('DHTUdp::enterMesh_: this.conf_ =<',this.conf_,'>');
     const ipv6s = this.machine_.readMachienIp();
     console.log('DHTUdp::enterMesh_: ipv6s =<',ipv6s,'>');
-    if(ipv6s.length < 1) {
-      return;
-    }
-    const ipv6 = ipv6s[0];
-    console.log('DHTUdp::enterMesh_: ipv6 =<',ipv6,'>');
     for(const entrance of this.conf_.entrances) {
       console.log('DHTUdp::enterMesh_: entrance =<',entrance,'>');
       const entryMesh = {
         entry:{
           port:this.port_,
-          host:ipv6,
+          host:ipv6s,
           at:new Date(),
         }
       }
