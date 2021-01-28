@@ -3,8 +3,9 @@ const debug_ = true;
 const unix = require('unix-dgram');
 const execSync = require('child_process').execSync;
 const ApiUnxiUdp = require('./api_unxi_udp.js');
-const DHTUdp = require('./dht_udp.js');
-const DHTUtils = require('./DHTUtils.js');
+const DHTUdp = require('./dht.udp.js');
+const DHTUtils = require('./dht.utils.js');
+const DHTNode = require('./dht.node.js');
 const utils = new DHTUtils();
 
 const client2broker = '/dev/shm/dht.pubsub.client2broker.sock';
@@ -15,7 +16,10 @@ const dht_config = {
       host:'ermu4.wator.xyz',
       port:dht_port
     },
-  ]
+  ],
+  reps: {
+    dht:'./store'
+  }
 };
 
 class Broker {
@@ -31,14 +35,37 @@ class Broker {
     this.api_cbs_ = {};
     this.localChannels_ = {};
 
-    this.dht_udp_ = new DHTUdp(dht_config,(msg)=>{
-      self.onDHTUdpMsg(msg);
+    this.dht_udp_ = new DHTUdp(dht_config,(msg,remote)=>{
+      self.onDHTUdpMsg(msg,remote);
     });
     this.dht_udp_.bindSocket(dht_port);
+    this.worldNodes_ = {};
+    this.node_ = new DHTNode(dht_config);
   }
 
-  onDHTUdpMsg(msg) {
-    console.log('Broker::onDHTUdpMsg:msg=<',msg,'>');
+  onDHTUdpMsg(msg,remote) {
+    //console.log('Broker::onDHTUdpMsg:msg=<',msg,'>');
+    if(msg.entry) {
+      this.onDHTEntry(msg.entry,remote);
+    } else if(msg.ping) {
+    } else {
+      console.log('Broker::onDHTUdpMsg:msg=<',msg,'>');
+    }
+  }
+  onDHTEntry(entry,remote) {
+    //console.log('Broker::onDHTEntry:entry=<',entry,'>');
+    //console.log('Broker::onDHTEntry:remote=<',remote,'>');
+    const address = remote.address;
+    const port = entry.port;
+    console.log('Broker::onDHTEntry:address=<',address,'>');
+    console.log('Broker::onDHTEntry:port=<',port,'>');
+    const welcome = {
+      welcome:{
+        nodes:this.worldNodes_,
+        at:new Date()
+      }
+    };
+    this.dht_udp_.send(welcome,port,address);
   }
 
 

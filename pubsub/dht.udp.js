@@ -1,6 +1,6 @@
 'use strict';
 const dgram = require('dgram');
-const PeerMachine = require('./peer.machine.js');
+const DHTMachine = require('./dht.machine.js');
 const debug_ = true;
 class DHTUdp {
   constructor(conf,onMsg) {
@@ -10,7 +10,7 @@ class DHTUdp {
     this.conf_ = conf;
     this.client_ = dgram.createSocket('udp6');
     this.onMsg_ = onMsg;
-    this.machine_ = new PeerMachine({localhost:false});
+    this.machine_ = new DHTMachine({localhost:false});
     setTimeout(this.enterMesh_.bind(this),1000);
   }
   
@@ -26,7 +26,7 @@ class DHTUdp {
       try {
         const jMsg = JSON.parse(message.toString());
         if(typeof self.onMsg_ === 'function') {
-          self.onMsg_(jMsg);
+          self.onMsg_(jMsg,remote);
         }
       } catch(err) {
         console.log('DHTUdp::bindSocket: message err =<',err,'>');
@@ -54,14 +54,11 @@ class DHTUdp {
   }
   enterMesh_() {
     //console.log('DHTUdp::enterMesh_: this.conf_ =<',this.conf_,'>');
-    const ipv6s = this.machine_.readMachienIp();
-    console.log('DHTUdp::enterMesh_: ipv6s =<',ipv6s,'>');
     for(const entrance of this.conf_.entrances) {
-      console.log('DHTUdp::enterMesh_: entrance =<',entrance,'>');
+      //console.log('DHTUdp::enterMesh_: entrance =<',entrance,'>');
       const entryMesh = {
         entry:{
           port:this.port_,
-          host:ipv6s,
           at:new Date(),
         }
       }
