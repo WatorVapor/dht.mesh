@@ -43,15 +43,15 @@ class Broker {
     this.localChannels_ = {};
 
     this.dht_udp_ = new DHTUdp(dht_config,(msg,remote,node)=>{
-      self.onDHTUdpMsg(msg,remote,node);
+      self.onDHTDataMsg(msg,remote,node);
     });
     this.dht_udp_.bindSocket(dht_port,dht_port_data);
   }
 
-  onDHTUdpMsg(msg,remote,nodeFrom) {
-    console.log('Broker::onDHTUdpMsg:msg=<',msg,'>');
-    console.log('Broker::onDHTUdpMsg:remote=<',remote,'>');
-    console.log('Broker::onDHTUdpMsg:nodeFrom=<',nodeFrom,'>');
+  onDHTDataMsg(msg,remote,nodeFrom) {
+    console.log('Broker::onDHTDataMsg:msg=<',msg,'>');
+    console.log('Broker::onDHTDataMsg:remote=<',remote,'>');
+    console.log('Broker::onDHTDataMsg:nodeFrom=<',nodeFrom,'>');
   }
 
 

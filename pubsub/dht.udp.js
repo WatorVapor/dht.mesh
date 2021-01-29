@@ -75,9 +75,6 @@ class DHTUdp {
       console.log('DHTUdp::send:err=<',err,'>');
     }
   }
-  doDHTPing(ping,port,host) {
-    this.send(ping,port,host);
-  }
   
   enterMesh_() {
     //console.log('DHTUdp::enterMesh_: this.conf_ =<',this.conf_,'>');
@@ -175,6 +172,7 @@ class DHTUdp {
       //console.log('DHTUdp::onDHTPong:ttl=<',ttl,'>');
       node.ttl = ttl;
       node.at = pong.r;
+      console.log('DHTUdp::onDHTPong:nodeFrom=<',nodeFrom,'>');
       console.log('DHTUdp::onDHTPong:node=<',node,'>');
     }
   }
