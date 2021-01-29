@@ -9,15 +9,18 @@ const utils = new DHTUtils();
 
 const client2broker = '/dev/shm/dht.pubsub.client2broker.sock';
 const dht_port = 1234;
+const dht_port_data = dht_port + 1;
 const dht_config = {
   entrances: [
     {
       host:'ermu4.wator.xyz',
-      port:dht_port
+      portc:dht_port,
+      portd:dht_port_data,
     },
     {
       host:'ermu3.wator.xyz',
-      port:dht_port
+      portc:dht_port,
+      portd:dht_port_data,
     },
   ],
   reps: {
@@ -27,9 +30,9 @@ const dht_config = {
 };
 
 class Broker {
-  constructor(port) {
+  constructor(portc,portd) {
     if(debug_) {
-      console.log('Broker::constructor:port=<',port,'>');
+      console.log('Broker::constructor:portc=<',portc,'>');
     }
     const self = this;
     this.api_ = new ApiUnxiUdp((msg)=>{
@@ -42,116 +45,15 @@ class Broker {
     this.dht_udp_ = new DHTUdp(dht_config,(msg,remote,node)=>{
       self.onDHTUdpMsg(msg,remote,node);
     });
-    this.dht_udp_.bindSocket(dht_port);
-    this.worldNodes_ = {};
-    setInterval(()=>{
-      self.doDHTPing_();
-    },60*1000)
+    this.dht_udp_.bindSocket(dht_port,dht_port_data);
   }
 
   onDHTUdpMsg(msg,remote,nodeFrom) {
-    //console.log('Broker::onDHTUdpMsg:msg=<',msg,'>');
-    //console.log('Broker::onDHTUdpMsg:remote=<',remote,'>');
-    //console.log('Broker::onDHTUdpMsg:nodeFrom=<',nodeFrom,'>');
-    if(msg.entry) {
-      this.onDHTEntry(msg.entry,remote,nodeFrom);
-    } else if(msg.welcome) {
-      this.onDHTWelcome(msg.welcome,remote,nodeFrom);
-    } else if(msg.ping) {
-      this.onDHTPing(msg.ping,remote,nodeFrom);
-    } else if(msg.pong) {
-      this.onDHTPong(msg.pong,remote,nodeFrom);
-    } else {
-      console.log('Broker::onDHTUdpMsg:msg=<',msg,'>');
-      console.log('Broker::onDHTUdpMsg:remote=<',remote,'>');
-      console.log('Broker::onDHTUdpMsg:nodeFrom=<',nodeFrom,'>');
-    }
-  }
-  onDHTEntry(entry,remote,nodeFrom) {
-    //console.log('Broker::onDHTEntry:entry=<',entry,'>');
-    //console.log('Broker::onDHTEntry:remote=<',remote,'>');
-    //console.log('Broker::onDHTEntry:nodeFrom=<',nodeFrom,'>');
-    const address = remote.address;
-    const port = entry.port;
-    //console.log('Broker::onDHTEntry:address=<',address,'>');
-    //console.log('Broker::onDHTEntry:port=<',port,'>');
-    this.worldNodes_[nodeFrom] = {
-      address:address,
-      port:port,
-      at:new Date().toISOString()
-    }
-    const welcome = {
-      welcome:{
-        nodes:this.worldNodes_,
-        at:new Date().toISOString()
-      }
-    };
-    this.dht_udp_.send(welcome,port,address);
-    //console.log('Broker::onDHTEntry:this.worldNodes_=<',this.worldNodes_,'>');
-  }
-  onDHTWelcome(welcome,remote,nodeFrom) {
-    //console.log('Broker::onDHTWelcome:welcome=<',welcome,'>');
-    //console.log('Broker::onDHTWelcome:remote=<',remote,'>');
-    //console.log('Broker::onDHTWelcome:nodeFrom=<',nodeFrom,'>');
-    for(const nodeKey in welcome.nodes) {
-      //console.log('Broker::onDHTWelcome:nodeKey=<',nodeKey,'>');
-      const endpoint = welcome.nodes[nodeKey];
-      //console.log('Broker::onDHTWelcome:endpoint=<',endpoint,'>');
-      this.worldNodes_[nodeKey] = endpoint;
-    }
-    //console.log('Broker::onDHTWelcome:this.worldNodes_=<',this.worldNodes_,'>');
-  }
-  onDHTPing(ping,remote,nodeFrom) {
-    //console.log('Broker::onDHTPing:ping=<',ping,'>');
-    //console.log('Broker::onDHTPing:remote=<',remote,'>');
-    //console.log('Broker::onDHTPing:nodeFrom=<',nodeFrom,'>');
-    const node = this.worldNodes_[nodeFrom];
-    //console.log('Broker::onDHTPing:node=<',node,'>');
-    if(node) {
-      const pong = {
-        pong:{
-          s:ping.s,
-          r:new Date()
-        }
-      };
-      this.dht_udp_.send(pong,node.port,node.address);
-    }
+    console.log('Broker::onDHTUdpMsg:msg=<',msg,'>');
+    console.log('Broker::onDHTUdpMsg:remote=<',remote,'>');
+    console.log('Broker::onDHTUdpMsg:nodeFrom=<',nodeFrom,'>');
   }
 
-  onDHTPong(pong,remote,nodeFrom) {
-    //console.log('Broker::onDHTPong:pong=<',pong,'>');
-    //console.log('Broker::onDHTPong:remote=<',remote,'>');
-    //console.log('Broker::onDHTPong:nodeFrom=<',nodeFrom,'>');
-    const node = this.worldNodes_[nodeFrom];
-    //console.log('Broker::onDHTPong:node=<',node,'>');
-    if(node) {
-      const ttl = new Date() - new Date(pong.s);
-      //console.log('Broker::onDHTPong:ttl=<',ttl,'>');
-      node.ttl = ttl;
-      node.at = pong.r;
-      console.log('Broker::onDHTPong:node=<',node,'>');
-    }
-  }
-
-  
-  doDHTPing_() {
-    //console.log('Broker::doDHTPing_:this.worldNodes_=<',this.worldNodes_,'>');
-    for(const nodeKey in this.worldNodes_) {
-      //console.log('Broker::doDHTPing_:nodeKey=<',nodeKey,'>');
-      const node = this.worldNodes_[nodeKey];
-      //console.log('Broker::doDHTPing_:node=<',node,'>');
-      if(!this.dht_udp_.isMe(nodeKey)) {
-        //console.log('Broker::doDHTPing_:node=<',node,'>');
-        //console.log('Broker::doDHTPing_:nodeKey=<',nodeKey,'>');
-        const pingDHT = {
-          ping:{
-            s:new Date()
-          }
-        };
-        this.dht_udp_.doDHTPing(pingDHT,node.port,node.address);
-      }
-    }
-  }
 
 
   onApiMsg(msg) {
