@@ -29,10 +29,10 @@ class DHTUdp {
         const jMsg = JSON.parse(message.toString());
         const result = this.node_.verify(jMsg);
         //console.log('DHTUdp::bindSocket: message result =<',result,'>');
-        if(result && typeof self.onMsg_ === 'function') {
+        if(result) {
           const node = this.node_.calcID(jMsg);
           //console.log('DHTUdp::bindSocket: message node =<',node,'>');
-          self.onMsg_(jMsg.p,remote,node);
+          self.onRemoteMsg_(jMsg.p,remote,node);
         }
       } catch(err) {
         console.log('DHTUdp::bindSocket: message err =<',err,'>');
@@ -50,15 +50,13 @@ class DHTUdp {
       console.log('DHTUdp::send:err=<',err,'>');
     }
   }
+  isMe(nodeid) {
+    return nodeid === this.node_.id;
+  }
+  doDHTPing(ping,port,host) {
+    this.send(ping,port,host);
+  }
   
-  doPing(ping) {
-    this.pingMsg_ = ping;
-    setInterval(this.doPing_.bind(this),1000);    
-  }
-  doPing_() {
-    this.pingMsg_.at = new Date();
-    this.send(this.pingMsg_,this.pingMsg_.ping);
-  }
   enterMesh_() {
     //console.log('DHTUdp::enterMesh_: this.conf_ =<',this.conf_,'>');
     for(const entrance of this.conf_.entrances) {
@@ -70,6 +68,11 @@ class DHTUdp {
         }
       }
       this.send(entryMesh,entrance.port,entrance.host);
+    }
+  }
+  onRemoteMsg_(msg,remote,node) {
+    if(typeof this.onMsg_ === 'function') {
+      this.onMsg_(msg,remote,node);
     }
   }
 };
