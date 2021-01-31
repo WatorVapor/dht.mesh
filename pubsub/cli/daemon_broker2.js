@@ -1,6 +1,6 @@
 'use strict';
 const Broker = require('../broker.js');
-const dht_port = 1234;
+const dht_port = 1334;
 const dht_port_data = dht_port + 1;
 const dht_config = {
   entrances: [
@@ -16,7 +16,7 @@ const dht_config = {
     },
   ],
   reps: {
-    dht:`/dev/shm/dht.pubsub`
+    dht:`/dev/shm/dht.pubsub2`
   },
   portc:dht_port,
   portd:dht_port_data,

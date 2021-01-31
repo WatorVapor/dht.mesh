@@ -4,35 +4,18 @@ const unix = require('unix-dgram');
 const execSync = require('child_process').execSync;
 const ApiUnxiUdp = require('./api_unxi_udp.js');
 const DHTUdp = require('./dht.udp.js');
+const DHTNode = require('./dht.node.js');
+const DHTBucket = require('./dht.bucket.js');
 const DHTUtils = require('./dht.utils.js');
 const utils = new DHTUtils();
 
 const client2broker = '/dev/shm/dht.pubsub.client2broker.sock';
-const dht_port = 1234;
-const dht_port_data = dht_port + 1;
-const dht_config = {
-  entrances: [
-    {
-      host:'ermu4.wator.xyz',
-      portc:dht_port,
-      portd:dht_port_data,
-    },
-    {
-      host:'ermu3.wator.xyz',
-      portc:dht_port,
-      portd:dht_port_data,
-    },
-  ],
-  reps: {
-    dht:`/dev/shm/dht.pubsub`
-  },
-  trap:true
-};
+
 
 class Broker {
-  constructor(portc,portd) {
+  constructor(conf) {
     if(debug_) {
-      console.log('Broker::constructor:portc=<',portc,'>');
+      console.log('Broker::constructor:conf=<',conf,'>');
     }
     const self = this;
     this.api_ = new ApiUnxiUdp((msg)=>{
@@ -41,11 +24,12 @@ class Broker {
     this.api_.bindUnixSocket(client2broker);
     this.api_cbs_ = {};
     this.localChannels_ = {};
-
-    this.dht_udp_ = new DHTUdp(dht_config,(msg,remote,node)=>{
+    this.node_ = new DHTNode(conf);
+    this.bucket_ = new DHTBucket(this.node_);
+    this.dht_udp_ = new DHTUdp(conf,this.node_,this.bucket_,(msg,remote,node)=>{
       self.onDHTDataMsg(msg,remote,node);
     });
-    this.dht_udp_.bindSocket(dht_port,dht_port_data);
+    this.dht_udp_.bindSocket(conf.portc,conf.portd);
   }
 
   onDHTDataMsg(msg,remote,nodeFrom) {

@@ -1,10 +1,11 @@
 'use strict';
 const dgram = require('dgram');
 const DHTMachine = require('./dht.machine.js');
-const DHTNode = require('./dht.node.js');
 const debug_ = true;
+const NODE_LOST_TIME_OUT_MS = 5*1000;
+
 class DHTUdp {
-  constructor(conf,onMsg) {
+  constructor(conf,node,bucket,onMsg) {
     if(debug_) {
       console.log('DHTUdp::constructor: conf =<',conf,'>');
     }
@@ -13,7 +14,8 @@ class DHTUdp {
     this.onMsg_ = onMsg;
     this.machine_ = new DHTMachine({localhost:false});
     setTimeout(this.enterMesh_.bind(this),1000);
-    this.node_ = new DHTNode(conf);    
+    this.node_ = node;    
+    this.bucket_ = bucket;    
     this.worldNodes_ = {};
     setInterval(this.doDHTPing_.bind(this),1*1000);
   }
@@ -84,6 +86,7 @@ class DHTUdp {
         entry:{
           portc:this.portc_,
           portd:this.portd_,
+          trap:this.conf_.trap,
           at:new Date(),
         }
       }
@@ -121,6 +124,7 @@ class DHTUdp {
       address:address,
       portc:portc,
       portd:portd,
+      trap:entry.trap,
       at:new Date().toISOString()
     }
     const welcome = {
@@ -165,15 +169,31 @@ class DHTUdp {
     //console.log('DHTUdp::onDHTPong:pong=<',pong,'>');
     //console.log('DHTUdp::onDHTPong:remote=<',remote,'>');
     //console.log('DHTUdp::onDHTPong:nodeFrom=<',nodeFrom,'>');
-    const node = this.worldNodes_[nodeFrom];
-    //console.log('DHTUdp::onDHTPong:node=<',node,'>');
-    if(node) {
+    const endpoint = this.worldNodes_[nodeFrom];
+    //console.log('DHTUdp::onDHTPong:endpoint=<',endpoint,'>');
+    if(endpoint) {
       const ttl = new Date() - new Date(pong.s);
       //console.log('DHTUdp::onDHTPong:ttl=<',ttl,'>');
-      node.ttl = ttl;
-      node.at = pong.r;
-      console.log('DHTUdp::onDHTPong:nodeFrom=<',nodeFrom,'>');
-      console.log('DHTUdp::onDHTPong:node=<',node,'>');
+      endpoint.ttl = ttl;
+      endpoint.at = pong.r;
+      //console.log('DHTUdp::onDHTPong:nodeFrom=<',nodeFrom,'>');
+      //console.log('DHTUdp::onDHTPong:endpoint=<',endpoint,'>');
+      this.bucket_.update(nodeFrom,endpoint);
+    }
+    for(const nodeCheck in this.worldNodes_) {
+      //console.log('DHTUdp::onDHTPong:nodeCheck=<',nodeCheck,'>');
+      if(nodeCheck !== this.node_.id) {
+        const endpointCheck = this.worldNodes_[nodeCheck];
+        //console.log('DHTUdp::onDHTPong:endpointCheck=<',endpointCheck,'>');
+        const escape_ms = new Date() - new Date(endpointCheck.at);
+        //console.log('DHTUdp::onDHTPong:escape_ms=<',escape_ms,'>');
+        if(escape_ms > NODE_LOST_TIME_OUT_MS) {
+          console.log('DHTUdp::onDHTPong:escape_ms=<',escape_ms,'>');
+          console.log('DHTUdp::onDHTPong:nodeCheck=<',nodeCheck,'>');
+          console.log('DHTUdp::onDHTPong:endpointCheck=<',endpointCheck,'>');
+          //this.bucket_.remove(nodeFrom);
+        }
+      }
     }
   }
 
