@@ -3,6 +3,7 @@ const dgram = require('dgram');
 const DHTMachine = require('./dht.machine.js');
 const debug_ = true;
 const NODE_LOST_TIME_OUT_MS = 5*1000;
+const NODE_LOST_TIME_OUT_MAX = 10;
 
 class DHTUdp {
   constructor(conf,node,bucket,onMsg) {
@@ -188,10 +189,18 @@ class DHTUdp {
         const escape_ms = new Date() - new Date(endpointCheck.at);
         //console.log('DHTUdp::onDHTPong:escape_ms=<',escape_ms,'>');
         if(escape_ms > NODE_LOST_TIME_OUT_MS) {
-          console.log('DHTUdp::onDHTPong:escape_ms=<',escape_ms,'>');
-          console.log('DHTUdp::onDHTPong:nodeCheck=<',nodeCheck,'>');
-          console.log('DHTUdp::onDHTPong:endpointCheck=<',endpointCheck,'>');
-          //this.bucket_.remove(nodeFrom);
+          //console.log('DHTUdp::onDHTPong:escape_ms=<',escape_ms,'>');
+          //console.log('DHTUdp::onDHTPong:nodeCheck=<',nodeCheck,'>');
+          //console.log('DHTUdp::onDHTPong:endpointCheck=<',endpointCheck,'>');
+          if(endpointCheck.timeout > 0) {
+            endpointCheck.timeout++;
+          } else {
+            endpointCheck.timeout = 1;
+          }
+          if(endpointCheck.timeout > NODE_LOST_TIME_OUT_MAX) {
+            delete this.worldNodes_[nodeCheck];
+          }
+          this.bucket_.remove(nodeCheck);
         }
       }
     }

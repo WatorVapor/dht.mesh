@@ -50,6 +50,24 @@ class DHTBucket {
     }
     //console.log('DHTBucket::update this.buckets_flat_=<',this.buckets_flat_,'>');
   }
+  remove(node) {
+    //console.log('DHTBucket::remove node=<',node,'>');
+    const flatHint = this.buckets_flat_.indexOf(node);
+    if(flatHint > -1) {
+      //console.log('DHTBucket::remove node=<',node,'>');
+      //console.log('DHTBucket::remove flatHint=<',flatHint,'>');
+      this.buckets_flat_.splice(flatHint,1);
+    }
+    for(const bucketIndex in this.buckets_) {
+      //console.log('DHTBucket::remove bucketIndex=<',bucketIndex,'>');
+      const hint = this.buckets_[bucketIndex].indexOf(node);
+      if(hint > -1) {
+        //console.log('DHTBucket::remove node=<',node,'>');
+        //console.log('DHTBucket::remove hint=<',hint,'>');
+        this.buckets_[bucketIndex].splice(hint,1);
+      }
+    }
+  }
   /*
   addPeer(peer,rinfo,trap) {
     const totalInBacket = Object.keys(this.peersFlat_).length;
