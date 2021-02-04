@@ -78,6 +78,11 @@ class DHTUdp {
       console.log('DHTUdp::send:err=<',err,'>');
     }
   }
+  broadcastSubscribe(outgates,channel,cb) {
+    console.log('DHTUdp::broadcastSubscribe: outgates =<',outgates,'>');
+    console.log('DHTUdp::broadcastSubscribe: channel =<',channel,'>');
+    console.log('DHTUdp::broadcastSubscribe: cb =<',cb,'>');
+  }
   
   enterMesh_() {
     //console.log('DHTUdp::enterMesh_: this.conf_ =<',this.conf_,'>');

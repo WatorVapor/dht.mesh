@@ -92,7 +92,14 @@ class Broker {
     }
     this.localChannels_[address].push({channel:channel,cb:cb,at:new Date()});
     const outgates = this.bucket_.near(address);
-    console.log('Broker::onApiSubscribe:outgates=<',outgates,'>');
+    //console.log('Broker::onApiSubscribe:outgates=<',outgates,'>');
+    this.dht_udp_.broadcastSubscribe(outgates,channel,cb);
+    /*
+    const gateEndPoint = {};
+    for(const gate of outgates) {
+      
+    }
+    */
   }
   onApiPublish(publish,cb) {
     //console.log('Broker::onApiPublish:publish=<',publish,'>');
