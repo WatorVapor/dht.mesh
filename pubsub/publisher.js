@@ -3,7 +3,7 @@ const unix = require('unix-dgram');
 const execSync = require('child_process').execSync;
 'use strict';
 const debug_ = true;
-const DHTUtils = require('./DHTUtils.js');
+const DHTUtils = require('./dht.utils.js');
 const ApiUnxiUdp = require('./api_unxi_udp.js');
 
 const utils = new DHTUtils();

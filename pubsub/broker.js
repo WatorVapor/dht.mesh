@@ -91,6 +91,8 @@ class Broker {
       this.localChannels_[address] = [];
     }
     this.localChannels_[address].push({channel:channel,cb:cb,at:new Date()});
+    const outgates = this.bucket_.near(address);
+    console.log('Broker::onApiSubscribe:outgates=<',outgates,'>');
   }
   onApiPublish(publish,cb) {
     //console.log('Broker::onApiPublish:publish=<',publish,'>');
