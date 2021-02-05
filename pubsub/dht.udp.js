@@ -1,6 +1,7 @@
 'use strict';
 const dgram = require('dgram');
 const DHTMachine = require('./dht.machine.js');
+const DHTStorage = require('./dht.storage.js');
 const debug_ = true;
 const NODE_LOST_TIME_OUT_MS = 5*1000;
 const NODE_LOST_TIME_OUT_MAX = 10;
@@ -16,7 +17,8 @@ class DHTUdp {
     this.machine_ = new DHTMachine({localhost:false});
     setTimeout(this.enterMesh_.bind(this),1000);
     this.node_ = node;    
-    this.bucket_ = bucket;    
+    this.bucket_ = bucket;
+    this.storage_ = new DHTStorage(conf); 
     this.worldNodes_ = {};
     setInterval(this.doDHTPing_.bind(this),1*1000);
   }
@@ -78,10 +80,33 @@ class DHTUdp {
       console.log('DHTUdp::send:err=<',err,'>');
     }
   }
-  broadcastSubscribe(outgates,channel,cb) {
-    console.log('DHTUdp::broadcastSubscribe: outgates =<',outgates,'>');
-    console.log('DHTUdp::broadcastSubscribe: channel =<',channel,'>');
-    console.log('DHTUdp::broadcastSubscribe: cb =<',cb,'>');
+  broadcastSubscribe(outgates,channel,address,cb) {
+    //console.log('DHTUdp::broadcastSubscribe: outgates =<',outgates,'>');
+    //console.log('DHTUdp::broadcastSubscribe: channel =<',channel,'>');
+    //console.log('DHTUdp::broadcastSubscribe: cb =<',cb,'>');
+    const msg = {
+      subscribe:{
+        channel:channel,
+        address:address,
+        node:this.node_.id,
+        cb:cb
+      }
+    }
+    const outEPs = {};
+    for(const gate of outgates) {
+      //console.log('DHTUdp::broadcastSubscribe: gate =<',gate,'>');
+      if(this.node_.id !== gate) {
+        outEPs[gate] = this.worldNodes_[gate];
+      } else {
+        this.storage_.store(msg);
+      }
+    }
+    //console.log('DHTUdp::broadcastSubscribe: outEPs =<',outEPs,'>');
+    for(const outEPIndex in outEPs) {
+      const outEP = outEPs[outEPIndex];
+      //console.log('DHTUdp::broadcastSubscribe: outEP =<',outEP,'>');
+      this.send(msg,outEP.portd,outEP.address);
+    }
   }
   
   enterMesh_() {
@@ -234,6 +259,23 @@ class DHTUdp {
 
 
   onDataMsg_(msg,remote,node) {
+    //console.log('DHTUdp::onDataMsg_:msg=<',msg,'>');
+    //console.log('DHTUdp::onDataMsg_:remote=<',remote,'>');
+    //console.log('DHTUdp::onDataMsg_:node=<',node,'>');
+    if(msg.subscribe) {
+      this.onDHTSubscribe_(msg.subscribe,remote,node);
+    } else if(msg.publish) {
+      this.onDHTPublish_(msg.publish,remote,node);
+    } else {
+      console.log('DHTUdp::onDataMsg_:msg=<',msg,'>');
+      console.log('DHTUdp::onDataMsg_:remote=<',remote,'>');
+      console.log('DHTUdp::onDataMsg_:node=<',node,'>');
+    }
+  }
+  onDHTSubscribe_(subscribe,remote,from) {
+    console.log('DHTUdp::onDHTSubscribe_:subscribe=<',subscribe,'>');
+    console.log('DHTUdp::onDHTSubscribe_:remote=<',remote,'>');
+    console.log('DHTUdp::onDHTSubscribe_:from=<',from,'>');    
   }
 };
 module.exports = DHTUdp;
