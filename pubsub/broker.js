@@ -91,9 +91,12 @@ class Broker {
       this.localChannels_[address] = [];
     }
     this.localChannels_[address].push({channel:channel,cb:cb,at:new Date()});
+    this.doDHTSubscribe_(address,channel);
+  }
+  doDHTSubscribe_(address,channel) {
     const outgates = this.bucket_.near(address);
     //console.log('Broker::onApiSubscribe:outgates=<',outgates,'>');
-    this.dht_udp_.broadcastSubscribe(outgates,channel,address,cb);
+    this.dht_udp_.broadcastSubscribe(outgates,channel,address);    
   }
   onApiPublish(publish,cb) {
     //console.log('Broker::onApiPublish:publish=<',publish,'>');
@@ -119,6 +122,16 @@ class Broker {
         }
       }
     }
+    this.doDHTPublish_(address,channel,message,cb);
+  }
+  doDHTPublish_(address,channel,message,cb) {
+    console.log('Broker::doDHTPublish_:address=<',address,'>');
+    console.log('Broker::doDHTPublish_:channel=<',channel,'>');
+    console.log('Broker::doDHTPublish_:message=<',message,'>');
+    console.log('Broker::doDHTPublish_:cb=<',cb,'>');
+    const outgates = this.bucket_.near(address);
+    //console.log('Broker::onApiSubscribe:outgates=<',outgates,'>');
+    this.dht_udp_.broadcastPublish(outgates,channel,address,message,cb);    
   }
 };
 module.exports = Broker;

@@ -80,25 +80,27 @@ class DHTUdp {
       console.log('DHTUdp::send:err=<',err,'>');
     }
   }
-  broadcastSubscribe(outgates,channel,address,cb) {
+  broadcastSubscribe(outgates,channel,address) {
     //console.log('DHTUdp::broadcastSubscribe: outgates =<',outgates,'>');
     //console.log('DHTUdp::broadcastSubscribe: channel =<',channel,'>');
-    //console.log('DHTUdp::broadcastSubscribe: cb =<',cb,'>');
-    const msg = {
+    const msgDHT = {
       subscribe:{
         channel:channel,
         address:address,
-        node:this.node_.id,
-        cb:cb
+        node:this.node_.id
       }
     }
     const outEPs = {};
+    let isSaved = false;
     for(const gate of outgates) {
       //console.log('DHTUdp::broadcastSubscribe: gate =<',gate,'>');
       if(this.node_.id !== gate) {
         outEPs[gate] = this.worldNodes_[gate];
       } else {
-        this.storage_.store(msg);
+        if(isSaved === false) {
+          this.storage_.store(address,msgDHT);
+          isSaved = true;
+        }
       }
     }
     //console.log('DHTUdp::broadcastSubscribe: outEPs =<',outEPs,'>');
@@ -108,6 +110,39 @@ class DHTUdp {
       this.send(msg,outEP.portd,outEP.address);
     }
   }
+
+  broadcastPublish(outgates,channel,address,msg,cb) {
+    //console.log('DHTUdp::broadcastPublish: outgates =<',outgates,'>');
+    //console.log('DHTUdp::broadcastPublish: channel =<',channel,'>');
+    const msgDHT = {
+      publish:{
+        channel:channel,
+        address:address,
+        msg:msg,
+        cb,cb
+      }
+    }
+    const outEPs = {};
+    let isFetched = false;
+    for(const gate of outgates) {
+      //console.log('DHTUdp::broadcastPublish: gate =<',gate,'>');
+      if(this.node_.id !== gate) {
+        outEPs[gate] = this.worldNodes_[gate];
+      } else {
+        if(isFetched === false) {
+          this.storage_.fetch(address);
+          isFetched = true;
+        }
+      }
+    }
+    //console.log('DHTUdp::broadcastPublish: outEPs =<',outEPs,'>');
+    for(const outEPIndex in outEPs) {
+      const outEP = outEPs[outEPIndex];
+      //console.log('DHTUdp::broadcastPublish: outEP =<',outEP,'>');
+      this.send(msgDHT,outEP.portd,outEP.address);
+    }
+  }
+
   
   enterMesh_() {
     //console.log('DHTUdp::enterMesh_: this.conf_ =<',this.conf_,'>');
