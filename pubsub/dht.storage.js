@@ -23,26 +23,38 @@ class DHTStorage {
       }
     });    
   }
-  store(address,msg) {
+  store(channel,address,node) {
     //console.log('DHTStorage::store address=<',address,'>');
-    console.log('DHTStorage::store msg=<',msg,'>');
-    msg.address = address;
-    this.channel_.insertOne(msg);
+    //console.log('DHTStorage::store address=<',address,'>');
+    //console.log('DHTStorage::store node=<',node,'>');
+    const msgStore = {
+      address:address,
+      node:node,
+      subscribe:{
+        channel:channel
+      }
+    };
+    this.channel_.insertOne(msgStore);
   }
-  fetch(address) {
-    console.log('DHTStorage::fetch address=<',address,'>');
+  fetch(address,cb) {
+    //console.log('DHTStorage::fetch address=<',address,'>');
     const findFilter = {
       address: address
     };
     this.channel_.find(findFilter).toArray( (error, result)=>{
-      console.log('DHTStorage::fetch result=<',result,'>');
+      //console.log('DHTStorage::fetch result=<',result,'>');
+      if(result) {
+        cb(result);
+      }
     });
   }
 
   onMongoCreated_() {
     this.pubsubdb_ = this.mongo_.db('dht_pubsub');    
-    //console.log('DHTStorage::onMongoCreated_:this.channel_=<', this.channel_,'>');
+    //console.log('DHTStorage::onMongoCreated_:this.pubsubdb_=<', this.pubsubdb_,'>');
     this.channel_ = this.pubsubdb_.collection('channel');
+    //console.log('DHTStorage::onMongoCreated_:this.channel_=<', this.channel_,'>');
+    this.channel_.drop();
   }
 }
 module.exports = DHTStorage;

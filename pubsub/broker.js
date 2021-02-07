@@ -7,6 +7,7 @@ const DHTUdp = require('./dht.udp.js');
 const DHTNode = require('./dht.node.js');
 const DHTBucket = require('./dht.bucket.js');
 const DHTUtils = require('./dht.utils.js');
+const DHTStorage = require('./dht.storage.js');
 const utils = new DHTUtils();
 
 const client2broker = '/dev/shm/dht.pubsub.client2broker.sock';
@@ -30,6 +31,7 @@ class Broker {
       self.onDHTDataMsg(msg,remote,node);
     });
     this.dht_udp_.bindSocket(conf.portc,conf.portd);
+    this.storage_ = new DHTStorage(conf); 
   }
 
   onDHTDataMsg(msg,remote,nodeFrom) {
@@ -96,7 +98,10 @@ class Broker {
   doDHTSubscribe_(address,channel) {
     const outgates = this.bucket_.near(address);
     //console.log('Broker::onApiSubscribe:outgates=<',outgates,'>');
-    this.dht_udp_.broadcastSubscribe(outgates,channel,address);    
+    if(outgates.includes(this.node_.id)) {
+      this.storage_.store(channel,address,this.node_.id);      
+    }
+    this.dht_udp_.broadcastSubscribe(outgates,channel,address);
   }
   onApiPublish(publish,cb) {
     //console.log('Broker::onApiPublish:publish=<',publish,'>');
@@ -107,18 +112,20 @@ class Broker {
     const address = utils.calcAddress(channel);
     //console.log('Broker::onApiPublish:address=<',address,'>');
     const channelLocals = this.localChannels_[address];
-    for(const channelLocal of channelLocals) {
-      //console.log('Broker::onApiPublish:channelLocal=<',channelLocal,'>');
-      const toPath = `/dev/shm/dht.pubsub.broker2client.${channelLocal.cb}.sock`;
-      //console.log('Broker::onApiPublish:toPath=<',toPath,'>');
-      const api_cb = this.api_cbs_[channelLocal.cb];
-      if(api_cb) {
-        this.api_.send({publisher:publish,at:new Date()},toPath);
-      } else {
-        const index = this.localChannels_[address].indexOf(channelLocal);
-        //console.log('Broker::onApiPublish:index=<',index,'>');
-        if(index > -1) {
-          this.localChannels_[address].splice(index,1);
+    if(channelLocals) {
+      for(const channelLocal of channelLocals) {
+        //console.log('Broker::onApiPublish:channelLocal=<',channelLocal,'>');
+        const toPath = `/dev/shm/dht.pubsub.broker2client.${channelLocal.cb}.sock`;
+        //console.log('Broker::onApiPublish:toPath=<',toPath,'>');
+        const api_cb = this.api_cbs_[channelLocal.cb];
+        if(api_cb) {
+          this.api_.send({publisher:publish,at:new Date()},toPath);
+        } else {
+          const index = this.localChannels_[address].indexOf(channelLocal);
+          //console.log('Broker::onApiPublish:index=<',index,'>');
+          if(index > -1) {
+            this.localChannels_[address].splice(index,1);
+          }
         }
       }
     }
@@ -131,7 +138,30 @@ class Broker {
     console.log('Broker::doDHTPublish_:cb=<',cb,'>');
     const outgates = this.bucket_.near(address);
     //console.log('Broker::onApiSubscribe:outgates=<',outgates,'>');
+    if(outgates.includes(this.node_.id)) {
+      const self = this;
+      this.storage_.fetch(address,(endpoint)=> {
+        self.onDHTSubscribeHint_(endpoint,message,channel,cb);
+      });
+    }
     this.dht_udp_.broadcastPublish(outgates,channel,address,message,cb);    
   }
+
+  onDHTSubscribeHint_(endpoints,msgPub,channel,cb) {
+    console.log('DHTUdp::onDHTSubscribeHint_:endpoints=<',endpoints,'>');
+    console.log('DHTUdp::onDHTSubscribeHint_:msgPub=<',msgPub,'>');
+    for(const endpoint of endpoints) {
+      const msgDHT = {
+        pubReal:{
+          channel:channel,
+          msg:msgPub,
+          cb,cb
+        },
+        dist:endpoint.node
+      }
+      console.log('DHTUdp::onDHTSubscribeHint_:msgDHT=<',msgDHT,'>');
+    }
+  }
+  
 };
 module.exports = Broker;

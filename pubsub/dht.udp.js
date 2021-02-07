@@ -1,7 +1,6 @@
 'use strict';
 const dgram = require('dgram');
 const DHTMachine = require('./dht.machine.js');
-const DHTStorage = require('./dht.storage.js');
 const debug_ = true;
 const NODE_LOST_TIME_OUT_MS = 5*1000;
 const NODE_LOST_TIME_OUT_MAX = 10;
@@ -18,7 +17,6 @@ class DHTUdp {
     setTimeout(this.enterMesh_.bind(this),1000);
     this.node_ = node;    
     this.bucket_ = bucket;
-    this.storage_ = new DHTStorage(conf); 
     this.worldNodes_ = {};
     setInterval(this.doDHTPing_.bind(this),1*1000);
   }
@@ -91,16 +89,10 @@ class DHTUdp {
       }
     }
     const outEPs = {};
-    let isSaved = false;
     for(const gate of outgates) {
       //console.log('DHTUdp::broadcastSubscribe: gate =<',gate,'>');
       if(this.node_.id !== gate) {
         outEPs[gate] = this.worldNodes_[gate];
-      } else {
-        if(isSaved === false) {
-          this.storage_.store(address,msgDHT);
-          isSaved = true;
-        }
       }
     }
     //console.log('DHTUdp::broadcastSubscribe: outEPs =<',outEPs,'>');
@@ -123,16 +115,10 @@ class DHTUdp {
       }
     }
     const outEPs = {};
-    let isFetched = false;
     for(const gate of outgates) {
       //console.log('DHTUdp::broadcastPublish: gate =<',gate,'>');
       if(this.node_.id !== gate) {
         outEPs[gate] = this.worldNodes_[gate];
-      } else {
-        if(isFetched === false) {
-          this.storage_.fetch(address);
-          isFetched = true;
-        }
       }
     }
     //console.log('DHTUdp::broadcastPublish: outEPs =<',outEPs,'>');
@@ -293,10 +279,12 @@ class DHTUdp {
 
 
 
+
+
   onDataMsg_(msg,remote,node) {
-    //console.log('DHTUdp::onDataMsg_:msg=<',msg,'>');
-    //console.log('DHTUdp::onDataMsg_:remote=<',remote,'>');
-    //console.log('DHTUdp::onDataMsg_:node=<',node,'>');
+    console.log('DHTUdp::onDataMsg_:msg=<',msg,'>');
+    console.log('DHTUdp::onDataMsg_:remote=<',remote,'>');
+    console.log('DHTUdp::onDataMsg_:node=<',node,'>');
     if(msg.subscribe) {
       this.onDHTSubscribe_(msg.subscribe,remote,node);
     } else if(msg.publish) {
