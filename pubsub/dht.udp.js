@@ -85,7 +85,10 @@ class DHTUdp {
       subscribe:{
         channel:channel,
         address:address,
-        node:this.node_.id
+        node:this.node_.id,
+        footprint:[
+          this.node_.id
+        ]
       }
     }
     const outEPs = {};
@@ -99,7 +102,7 @@ class DHTUdp {
     for(const outEPIndex in outEPs) {
       const outEP = outEPs[outEPIndex];
       //console.log('DHTUdp::broadcastSubscribe: outEP =<',outEP,'>');
-      this.send(msg,outEP.portd,outEP.address);
+      this.send(msgDHT,outEP.portd,outEP.address);
     }
   }
 
@@ -111,7 +114,10 @@ class DHTUdp {
         channel:channel,
         address:address,
         msg:msg,
-        cb,cb
+        cb,cb,
+        footprint:[
+          this.node_.id
+        ]
       }
     }
     const outEPs = {};
@@ -282,23 +288,12 @@ class DHTUdp {
 
 
   onDataMsg_(msg,remote,node) {
-    console.log('DHTUdp::onDataMsg_:msg=<',msg,'>');
-    console.log('DHTUdp::onDataMsg_:remote=<',remote,'>');
-    console.log('DHTUdp::onDataMsg_:node=<',node,'>');
-    if(msg.subscribe) {
-      this.onDHTSubscribe_(msg.subscribe,remote,node);
-    } else if(msg.publish) {
-      this.onDHTPublish_(msg.publish,remote,node);
-    } else {
-      console.log('DHTUdp::onDataMsg_:msg=<',msg,'>');
-      console.log('DHTUdp::onDataMsg_:remote=<',remote,'>');
-      console.log('DHTUdp::onDataMsg_:node=<',node,'>');
+    //console.log('DHTUdp::onDataMsg_:msg=<',msg,'>');
+    //console.log('DHTUdp::onDataMsg_:remote=<',remote,'>');
+    //console.log('DHTUdp::onDataMsg_:node=<',node,'>');
+    if(typeof this.onMsg_ === 'function') {
+      this.onMsg_(msg,remote,node);
     }
-  }
-  onDHTSubscribe_(subscribe,remote,from) {
-    console.log('DHTUdp::onDHTSubscribe_:subscribe=<',subscribe,'>');
-    console.log('DHTUdp::onDHTSubscribe_:remote=<',remote,'>');
-    console.log('DHTUdp::onDHTSubscribe_:from=<',from,'>');    
   }
 };
 module.exports = DHTUdp;
